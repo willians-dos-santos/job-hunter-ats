@@ -102,3 +102,25 @@ def test_job_opening_and_target_company_support_gupy_source():
     target = TargetCompany(name="ambev", source="Gupy")
     assert target.source == "Gupy"
 
+
+def test_target_company_supports_gupy_global_source_and_query():
+    target = TargetCompany(name="Python", source="gupy_global")
+    assert target.source == "gupy_global"
+    assert target.name == "Python"
+    assert target.query is None
+    assert target.search_query == "Python"
+
+    target_with_query = TargetCompany(name="Global Search", source="gupy_global", query="Python Backend")
+    assert target_with_query.source == "gupy_global"
+    assert target_with_query.query == "Python Backend"
+    assert target_with_query.search_query == "Python Backend"
+
+    job = JobOpening(
+        job_id="gupy_101",
+        source="gupy_global",
+        company="Diverse Corp",
+        title="Python Dev",
+        url="https://diverse.gupy.io/jobs/101",
+    )
+    assert job.source == "gupy_global"
+

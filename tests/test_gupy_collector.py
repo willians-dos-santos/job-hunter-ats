@@ -195,3 +195,128 @@ async def test_gupy_collector_handles_500_gracefully(respx_mock):
         jobs = await collector.fetch_jobs(target, client=client)
 
     assert jobs == []
+
+
+def test_gupy_collector_build_params_global_discovery():
+    collector = GupyCollector()
+
+    # 1. gupy_global with explicit query
+    target_query = TargetCompany(name="Ignored", source="gupy_global", query="Backend Python")
+    params_query = collector.build_params(target_query)
+    assert params_query["jobName"] == "Backend Python"
+    assert params_query["limit"] == 100
+    assert params_query["offset"] == 0
+    assert "careerPageName" not in params_query
+
+    # 2. gupy_global without query (fallback to name)
+    target_name = TargetCompany(name="Python", source="gupy_global")
+    params_name = collector.build_params(target_name)
+    assert params_name["jobName"] == "Python"
+    assert params_name["limit"] == 100
+    assert params_name["offset"] == 0
+    assert "careerPageName" not in params_name
+
+    # 3. Standard company search keeps careerPageName and has no jobName
+    target_company = TargetCompany(name="Stefanini Group", source="Gupy")
+    params_company = collector.build_params(target_company)
+    assert params_company["careerPageName"] == "Stefanini Group"
+    assert "jobName" not in params_company
+
+
+def test_gupy_collector_parse_jobs_global_discovery_multiple_companies():
+    collector = GupyCollector()
+    target = TargetCompany(name="Python", source="gupy_global")
+
+    payload = {
+        "data": [
+            {
+                "id": 1001,
+                "name": "Backend Python Sênior",
+                "careerPageName": "PicPay",
+                "workplaceType": "remote",
+                "jobUrl": "https://picpay.gupy.io/jobs/1001",
+            },
+            {
+                "id": 1002,
+                "name": "Engenheiro de Dados Pleno",
+                "careerPageName": "Ambev Tech",
+                "workplaceType": "on-site",
+                "city": "Campinas",
+                "state": "SP",
+                "jobUrl": "https://ambevtech.gupy.io/jobs/1002",
+            },
+            {
+                "id": 1003,
+                "name": "Python Specialist",
+                "careerPageName": None,  # Test fallback to "Gupy"
+                "workplaceType": "remote",
+                "jobUrl": "https://portal.gupy.io/jobs/1003",
+            },
+        ]
+    }
+
+    jobs = collector.parse_jobs(target, payload)
+    assert len(jobs) == 3
+
+    # Job 1: PicPay - Remoto
+    assert jobs[0].company == "PicPay"
+    assert jobs[0].title == "Backend Python Sênior"
+    assert jobs[0].location == "Remoto"
+    assert jobs[0].url == "https://picpay.gupy.io/jobs/1001"
+
+    # Job 2: Ambev Tech - Campinas - SP
+    assert jobs[1].company == "Ambev Tech"
+    assert jobs[1].title == "Engenheiro de Dados Pleno"
+    assert jobs[1].location == "Campinas - SP"
+    assert jobs[1].url == "https://ambevtech.gupy.io/jobs/1002"
+
+    # Job 3: Fallback to "Gupy" when careerPageName is None
+    assert jobs[2].company == "Gupy"
+    assert jobs[2].title == "Python Specialist"
+    assert jobs[2].location == "Remoto"
+
+
+@pytest.mark.asyncio
+async def test_gupy_collector_fetch_global_discovery(respx_mock):
+    collector = GupyCollector()
+    target = TargetCompany(name="Python Global", source="gupy_global", query="Python")
+
+    mock_payload = {
+        "data": [
+            {
+                "id": 2001,
+                "name": "Desenvolvedor Python",
+                "careerPageName": "Tech Hub",
+                "workplaceType": "remote",
+                "jobUrl": "https://techhub.gupy.io/jobs/2001",
+            }
+        ]
+    }
+
+    route = respx_mock.get("https://portal.gupy.io/api/job-search/jobs").respond(
+        status_code=200, json=mock_payload
+    )
+
+    async with httpx.AsyncClient() as client:
+        jobs = await collector.fetch_jobs(target, client=client)
+
+    assert route.called
+    sent_request = route.calls.last.request
+
+    # Check query params: jobName should be "Python", limit="100", offset="0"
+    assert sent_request.url.params.get("jobName") == "Python"
+    assert sent_request.url.params.get("limit") == "100"
+    assert sent_request.url.params.get("offset") == "0"
+    assert "careerPageName" not in sent_request.url.params
+
+    # Check headers
+    user_agent = sent_request.headers.get("user-agent", "")
+    assert "Mozilla/5.0" in user_agent
+    assert sent_request.headers.get("accept") == "application/json"
+
+    # Check parsed jobs
+    assert len(jobs) == 1
+    assert jobs[0].company == "Tech Hub"
+    assert jobs[0].title == "Desenvolvedor Python"
+    assert jobs[0].location == "Remoto"
+

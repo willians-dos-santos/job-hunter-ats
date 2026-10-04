@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 class JobOpening(BaseModel):
     """Normalized canonical model for a job opening."""
     job_id: str = Field(..., description="Canonical globally unique ID, e.g. 'greenhouse:acme:12345'")
-    source: Literal["greenhouse", "lever", "Gupy", "gupy"] = Field(..., description="Source ATS platform")
+    source: Literal["greenhouse", "lever", "Gupy", "gupy", "gupy_global"] = Field(..., description="Source ATS platform")
     company: str = Field(..., description="Company name or slug")
     title: str = Field(..., description="Job opening title")
     location: str = Field(default="N/A", description="Job location or 'N/A' if unspecified")
@@ -34,8 +34,14 @@ class JobOpening(BaseModel):
 class TargetCompany(BaseModel):
     """Target company ATS configuration."""
     name: str = Field(..., description="Company name or slug")
-    source: Literal["greenhouse", "lever", "Gupy", "gupy"] = Field(..., description="Target ATS platform")
+    source: Literal["greenhouse", "lever", "Gupy", "gupy", "gupy_global"] = Field(..., description="Target ATS platform")
     slug: Optional[str] = Field(default=None, description="Explicit slug identifier")
+    query: Optional[str] = Field(default=None, description="Search term for global discovery")
+
+    @property
+    def search_query(self) -> str:
+        """Returns query or falls back to name as search term."""
+        return self.query or self.name
 
     @model_validator(mode="before")
     @classmethod

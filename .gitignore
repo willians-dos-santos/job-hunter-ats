@@ -22,3 +22,13 @@ data/*.db
 .env
 .env.*
 !.env.example
+
+# Ferramentas de IA e agentes locais
+.agent/
+.agents/
+
+# Editor directories and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

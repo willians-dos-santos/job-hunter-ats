@@ -47,6 +47,7 @@ class CrawlerOrchestrator:
             "lever": LeverCollector(),
             "Gupy": gupy_collector,
             "gupy": gupy_collector,
+            "gupy_global": gupy_collector,
         }
 
     @classmethod

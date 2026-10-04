@@ -21,8 +21,13 @@ class GupyCollector(BaseCollector):
             "limit": 100,
             "offset": 0,
         }
-        if target.name:
-            params["careerPageName"] = target.name
+        if target.source == "gupy_global":
+            search_term = target.query or target.name
+            if search_term:
+                params["jobName"] = search_term
+        else:
+            if target.name:
+                params["careerPageName"] = target.name
         return params
 
     def get_headers(self) -> dict:
@@ -58,7 +63,10 @@ class GupyCollector(BaseCollector):
             # Model & Normalization
             job_id = f"gupy_{item['id']}"
             title = str(item.get("name") or "").strip()
-            company = item.get("careerPageName") or (target.name if target and target.name else "Stefanini Group")
+            if target.source == "gupy_global":
+                company = item.get("careerPageName") or "Gupy"
+            else:
+                company = item.get("careerPageName") or (target.name if target and target.name else "Stefanini Group")
             url = (
                 item.get("jobUrl")
                 or item.get("careerPageUrl")

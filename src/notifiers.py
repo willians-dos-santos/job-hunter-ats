@@ -50,7 +50,7 @@ class TelegramNotifier:
             f"💼 *Cargo:* {job.title}\n"
             f"📍 *Localização:* {job.location}\n"
             f"🌐 *Plataforma:* {job.source.capitalize()}\n"
-            f"🔗 *Candidatura:* [Aceder à Vaga]({job.url})\n"
+            f"🔗 *Candidatura:* [Acessar Vaga]({job.url})\n"
         )
 
     async def notify(
