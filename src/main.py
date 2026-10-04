@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import argparse
 import asyncio
 import logging
@@ -12,24 +16,13 @@ from src.collectors.base import BaseCollector
 from src.collectors.greenhouse import GreenhouseCollector
 from src.collectors.lever import LeverCollector
 from src.collectors.gupy import GupyCollector
+from src.config import load_config
 from src.filters import JobFilter
 from src.models import JobOpening, TargetCompany
 from src.notifiers import ConsoleNotifier, NotificationDispatcher, TelegramNotifier
 from src.storage import SQLiteStorage
 
 logger = logging.getLogger("job_hunter_ats")
-
-
-def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
-    """Loads configuration from a YAML file."""
-    path = Path(config_path)
-    if not path.is_file():
-        raise FileNotFoundError(f"Configuration file not found: {config_path}")
-
-    with open(path, "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
-
-    return data
 
 
 class CrawlerOrchestrator:
@@ -75,7 +68,7 @@ class CrawlerOrchestrator:
 
         telegram_notifier = (
             TelegramNotifier(bot_token=tg_token, chat_id=tg_chat_id)
-            if tg_enabled or (tg_token and tg_chat_id)
+            if tg_enabled and (tg_token and tg_chat_id)
             else None
         )
         dispatcher = NotificationDispatcher(
