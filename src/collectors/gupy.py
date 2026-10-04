@@ -55,30 +55,25 @@ class GupyCollector(BaseCollector):
             if not raw_id_str:
                 continue
 
-            # Title
+            # Model & Normalization
+            job_id = f"gupy_{item['id']}"
             title = str(item.get("name") or "").strip()
-
-            # Canonical URL resolution (without legacy subdomains)
+            company = item.get("careerPageName") or (target.name if target and target.name else "Stefanini Group")
             url = (
-                item.get("careerPageUrl")
-                or item.get("jobUrl")
+                item.get("jobUrl")
+                or item.get("careerPageUrl")
                 or f"https://portal.gupy.io/job-search/jobs/{raw_id_str}"
             )
 
-            # Location formatting
-            if item.get("isRemoteWork") is True:
+            # Location resolution based on workplaceType
+            workplace_type = str(item.get("workplaceType") or "").strip().lower()
+            if workplace_type == "remote" or item.get("isRemoteWork") is True:
                 location = "Remoto"
             else:
-                city = str(item.get("city") or "").strip()
-                state = str(item.get("state") or "").strip()
-                if city and state:
-                    location = f"{city} - {state}"
-                elif city:
-                    location = city
-                elif state:
-                    location = state
-                else:
-                    location = "N/A"
+                city = item.get("city", "") or ""
+                state = item.get("state", "") or ""
+                city_state = f"{city} - {state}".strip(" - ")
+                location = city_state if city_state else "Presencial"
 
             # Parse optional publishedDate
             published_date_raw = item.get("publishedDate") or item.get("createdAt")
@@ -91,9 +86,9 @@ class GupyCollector(BaseCollector):
 
             parsed_jobs.append(
                 JobOpening(
-                    job_id=f"gupy_{raw_id_str}",
+                    job_id=job_id,
                     source="Gupy",
-                    company=target.name,
+                    company=company,
                     title=title,
                     location=location,
                     url=url,

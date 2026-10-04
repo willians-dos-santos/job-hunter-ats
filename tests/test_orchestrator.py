@@ -70,13 +70,13 @@ async def test_orchestrator_run_end_to_end(
 
     # From greenhouse_jobs: "Senior Backend Engineer", "Remote, Brazil"
     # From lever_jobs: "Staff Backend Engineer - Python", "Remote, Global"
-    # From gupy_jobs: "Desenvolvedor(a) Backend Python Sênior", "Remoto"
+    # From gupy_jobs: "Analista Desenvolvedor Backend Sr", "Remoto"
     # Total new matching jobs: 3
     assert len(notified_jobs) == 3
     job_ids = [j.job_id for j in notified_jobs]
     assert "greenhouse:acme:4123456" in job_ids
     assert "lever:techcorp:a1b2c3d4-e5f6-7890-abcd-ef1234567890" in job_ids
-    assert "gupy_8123456" in job_ids
+    assert "gupy_12668014" in job_ids
 
     # Second crawl run: all jobs are marked as seen, notified_jobs is 0
     second_run_notified = await orchestrator.run()

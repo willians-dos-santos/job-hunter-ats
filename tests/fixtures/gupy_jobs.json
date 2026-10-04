@@ -1,42 +1,209 @@
 {
   "data": [
     {
-      "id": 8123456,
-      "name": "Desenvolvedor(a) Backend Python Sênior",
-      "careerPageUrl": "https://ambev.gupy.io/job/eyJqb2JJZCI6ODEyMzQ1Nn0=",
-      "isRemoteWork": true,
+      "id": 12518303,
+      "name": "ANALISTA ADMINISTRATIVO PL",
+      "applicationDeadline": "2026-11-16T00:00:00.000Z",
+      "description": "No Grupo Stefanini, acreditamos no poder da colaboração. Co-criamos soluções inovadoras em parceria com nossos clientes, combinando tecnologia de ponta, inteligência artificial e a criatividade humana. Estamos na vanguarda da resolução de problemas de negócios, proporcionando impacto real em escala global.Ao se juntar à Stefanini, você se torna parte de uma jornada global de transformação. Estamos empenhados em criar impacto positivo não apenas nos negócios, mas também na vida de nossos colaboradores. Se você procura uma oportunidade de crescimento profissional em uma empresa que valoriza inovação, respeito, autonomia e parceria, você encontra aqui!Junte-se a nós e seja parte da mudança!#LI-MB1#LI-ONSITEAtuação presencial na Vila Olímpia/SP.Responsabilidades e atribuiçõesEstamos em busca de um(a) Analista Administrativo para atuar na gestão integrada de Notas Fiscais e pagamentos de fornecedores, garantindo a conformidade e eficiência dos processos administrativos e financeiros da organização. O profissional será responsável por atividades detalhadas de análise, validação e controle de documentos, trabalhando com o sistema SGTA e a ferramenta DFE (SAP) para internalização das NFs. Este papel envolve o acompanhamento do workflow de aprovação, programação e pagamento das NFs, além da interface com os fornecedores para esclarecimento de pendências e status de pagamentos. Se você possui perfil analítico, experiência administrativa consolidada e busca um ambiente dinâmico, esse desafio é para você.Responsabilidades:Analisar as NFs enviadas pelos fornecedores, validando os dados das notas versus os pedidos de compra e confirmando a emissão do Termo de Aceite no sistema SGTA;Emitir a FR para entradas de NFs de serviço e aprovar o workflow de erros e inconsistências na ferramenta DFE (SAP);Monitorar o workflow relacionado à aprovação, programação e pagamento das NFs;Realizar a interface com fornecedores para acompanhamento do status de pagamento e tratar eventuais divergências;Solicitar adiantamentos quando necessário, garantindo o fluxo financeiro adequado;Atuar com rotinas administrativas, controle de documentos e atendimento a clientes internos e externos;Prestar suporte em processos financeiros, controle de contratos e organização de arquivos;Elaborar relatórios e acompanhar indicadores de desempenho, assegurando o cumprimento de prazos e procedimentos internos.\n\nRequisitos e qualificaçõesExperiência comprovada em funções administrativas, preferencialmente com foco em processos financeiros e controle de notas fiscais;Conhecimento intermediário/avançado em Pacote Office, com ênfase em Excel;Habilidade em comunicação e organização para trabalhar com demandas internas e junto a fornecedores;Desejável experiência com sistemas ERP e ferramentas de gestão, como o SAP e SGTA;Perfil analítico e proativo, com capacidade para identificar melhorias e solucionar inconsistências nos processos.\n\nInformações adicionais🍛 Vale-alimentação ou vale-refeição;👨🏼‍🎓 Desconto em cursos, universidades e instituições de idiomas;📚 Academia Stefanini — plataforma com cursos on-line, gratuitos, atualizados e com certificado;🗣 Mentoring;💉 Clube de vantagens para consultas e exames;🏥 Assistência médica;🦷 Assistência odontológica;💰 Clube de vantagens e descontos nos melhores estabelecimentos;🛫 Clube de viagens;🐶 Convênio para pets.",
+      "careerPageName": "Stefanini Group",
+      "careerPageLogo": "https://attachments.gupy.io/production/companies/39703/career/84556/images/2024-10-08_17-35_companyLogoUrl.png",
+      "careerPageUrl": "",
+      "type": "vacancy_type_effective",
+      "publishedDate": "2026-10-02T23:07:01.569Z",
+      "workplaceType": "on-site",
       "city": "São Paulo",
-      "state": "SP",
-      "publishedDate": "2026-10-01T12:00:00.000Z"
+      "state": "São Paulo",
+      "jobUrl": "https://stefanini.gupy.io/job/eyJqb2JJZCI6MTI1MTgzMDMsInNvdXJjZSI6Imd1cHlfcG9ydGFsIn0=?jobBoardSource=gupy_portal",
+      "badges": {
+        "friendlyBadge": true,
+        "isPWD": true
+      },
+      "disabilities": true
     },
     {
-      "id": 8123457,
-      "name": "Engenheiro(a) de Dados Pleno",
-      "careerPageUrl": "https://ambev.gupy.io/job/eyJqb2JJZCI6ODEyMzQ1N30=",
-      "isRemoteWork": false,
-      "city": "Campinas",
-      "state": "SP",
-      "publishedDate": "2026-10-02T14:30:00.000Z"
+      "id": 12670410,
+      "name": "Analista Segurança da Informação Pleno",
+      "applicationDeadline": "2026-10-30T00:00:00.000Z",
+      "description": "No Grupo Stefanini, acreditamos no poder da colaboração. Co-criamos soluções inovadoras em parceria com nossos clientes, combinando tecnologia de ponta, inteligência artificial e a criatividade humana. Estamos na vanguarda da resolução de problemas de negócios, proporcionando impacto real em escala global.Ao se juntar à Stefanini, você se torna parte de uma jornada global de transformação. Estamos empenhados em criar impacto positivo não apenas nos negócios, mas também na vida de nossos colaboradores. Se você procura uma oportunidade de crescimento profissional em uma empresa que valoriza inovação, respeito, autonomia e parceria, você encontra aqui!\nEstamos em busca de um(a) Analista de Segurança da Informação Pleno para atuar na implementação, administração e sustentação de soluções de segurança, contribuindo para a proteção dos ambientes de Tecnologia da Informação e para a aplicação das políticas e normas de segurança.\n\nJunte-se a nós e seja parte da mudança!Responsabilidades e atribuiçõesImplementar e administrar mecanismos de segurança em ativos de TIC, conforme as políticas institucionais;Apoiar projetos de Arquitetura de Segurança da Informação e implantação, substituição e atualização de soluções de segurança;\n\nInstalar, administrar e customizar ferramentas e equipamentos de segurança homologados;\n\n\nApoiar a elaboração e revisão de normas, políticas e procedimentos de Segurança da Informação;\n\n\nAtuar no monitoramento e cumprimento das políticas de segurança;\n\n\nRealizar testes de vulnerabilidades para homologação de softwares utilizados pelos usuários;\n\n\nApoiar avaliações de riscos de segurança em sistemas, soluções e projetos;\n\n\nPesquisar vulnerabilidades, atualizações e correções de segurança, apoiando o planejamento e implementação das mudanças;\n\n\nAtuar em conjunto com equipes de Infraestrutura, Desenvolvimento, Service Desk e demais áreas de TI;\n\n\nPrestar suporte técnico em assuntos relacionados à Segurança da Informação;\n\n\nApoiar processos de gestão de riscos, continuidade de negócios e identidade.\n\nRequisitos e qualificaçõesEnsino Superior completo em Tecnologia da Informação;\n\n\nCertificação ITIL 4 Foundation ou superior;\n\n\nCertificação LPIC-1 ou superior;\n\n\nPossuir uma ou mais das seguintes certificações:\n\n\nCompTIA Cybersecurity Analyst (CySA+) ou superior;\n\n\nCEH – Certified Ethical Hacker 11 ou superior;\n\n\nCompTIA PenTest+ ou superior;\n\n\nGIAC Security Essentials (GSEC) ou superior\n\n\nMínimo de 5 anos de experiência em atividades relacionadas à Segurança da Informação e infraestrutura de TI.Experiência com:\n\nFirewalls, IDS, IPS e soluções Anti-DDoS;\n\n\nEthernet 802.1X, RADIUS e VPN (Client-to-Site e Site-to-Site);\n\n\nPolíticas, normas e procedimentos de Segurança da Informação;\n\n\nGestão de riscos e continuidade de negócios;\n\n\nSistemas de gestão de identidade;\n\n\nLDAP e/ou Active Directory;\n\n\nHardening de sistemas operacionais GNU/Linux e Windows Server 2019 ou superiores;\n\n\nSoluções de antivírus e AntiSpam.📌 Sobre as certificaçõesA ausência de uma ou mais das certificações mencionadas não elimina automaticamente a sua candidatura. Profissionais que atendam aos demais requisitos e sejam aprovados no processo seletivo poderão ter a oportunidade de obter as certificações necessárias dentro do período de experiência, com os custos de certificação custeados pela empresa, conforme as condições estabelecidas pela organização.\n\nInformações adicionais🍛 Vale-alimentação ou vale-refeição;👨🏼‍🎓 Desconto em cursos, universidades e instituições de idiomas;📚 Academia Stefanini — plataforma com cursos on-line, gratuitos, atualizados e com certificado;🗣 Mentoring;💉 Clube de vantagens para consultas e exames;🏥 Assistência médica;🦷 Assistência odontológica;💰 Clube de vantagens e descontos nos melhores estabelecimentos;🛫 Clube de viagens;🐶 Convênio para pets.",
+      "careerPageName": "Stefanini Group",
+      "careerPageLogo": "https://attachments.gupy.io/production/companies/39703/career/84556/images/2024-10-08_17-35_companyLogoUrl.png",
+      "careerPageUrl": "",
+      "type": "vacancy_type_effective",
+      "publishedDate": "2026-10-02T19:57:16.442Z",
+      "workplaceType": "on-site",
+      "city": "Brasília",
+      "state": "Distrito Federal",
+      "jobUrl": "https://stefanini.gupy.io/job/eyJqb2JJZCI6MTI2NzA0MTAsInNvdXJjZSI6Imd1cHlfcG9ydGFsIn0=?jobBoardSource=gupy_portal",
+      "badges": {
+        "friendlyBadge": true,
+        "isPWD": true
+      },
+      "disabilities": true
     },
     {
-      "id": 8123458,
-      "name": "Analista de Suporte (Com jobUrl)",
-      "jobUrl": "https://ambev.gupy.io/jobs/8123458",
-      "isRemoteWork": false,
-      "city": "Rio de Janeiro",
-      "state": "RJ"
+      "id": 12669836,
+      "name": "Senior IT Project Manager (BH) ",
+      "applicationDeadline": "2026-12-01T00:00:00.000Z",
+      "description": "No Grupo Stefanini, acreditamos no poder da colaboração. Co-criamos soluções inovadoras em parceria com nossos clientes, combinando tecnologia de ponta, inteligência artificial e a criatividade humana. Estamos na vanguarda da resolução de problemas de negócios, proporcionando impacto real em escala global.Ao se juntar à Stefanini, você se torna parte de uma jornada global de transformação. Estamos empenhados em criar impacto positivo não apenas nos negócios, mas também na vida de nossos colaboradores. Se você procura uma oportunidade de crescimento profissional em uma empresa que valoriza inovação, respeito, autonomia e parceria, você encontra aqui!Junte-se a nós e seja parte da mudança!Responsabilidades e atribuiçõesEstamos em busca de um(a) Gerente de Projetos de TI Sênior para liderar projetos estratégicos e de grande porte, com atuação global e interface entre áreas de negócio e tecnologia.O profissional será responsável por conduzir todas as etapas dos projetos, desde o planejamento até a entrega final, garantindo o cumprimento de prazos, orçamento, escopo, qualidade e objetivos de negócio. Buscamos alguém com sólida experiência em gestão de projetos complexos, capacidade de liderança, visão estratégica e habilidade para gerenciar stakeholders em ambientes multiculturais e equipes multidisciplinares.É importante que o profissional tenha experiência em pelo menos uma das seguintes frentes: projetos de Dados, Inteligência Artificial (IA) ou Transformação Digital, não sendo necessário possuir experiência em todas elas.A certificação PMP (PMI) é obrigatória para esta posição.Gerenciar projetos estratégicos de TI de grande porte, desde a iniciação e o planejamento até a execução, monitoramento e encerramento.Elaborar e acompanhar cronogramas, planos de projeto, orçamentos, riscos, recursos e indicadores de desempenho.Garantir as entregas dentro dos prazos, escopo, orçamento e padrões de qualidade estabelecidos.Atuar em parceria com as áreas de negócio e tecnologia para definir prioridades, objetivos, requisitos e entregáveis.Conduzir projetos relacionados a Dados, Inteligência Artificial (IA) ou Transformação Digital, conforme a experiência do profissional.Coordenar equipes multidisciplinares, fornecedores e parceiros externos ao longo de todo o ciclo de vida dos projetos.Garantir o alinhamento das soluções locais com a arquitetura global e as diretrizes corporativas.Monitorar o andamento dos projetos, identificando riscos, dependências, impedimentos e oportunidades de melhoria.Elaborar e apresentar relatórios executivos, indicadores e status reports para a liderança e stakeholders globais.Promover a comunicação clara e estruturada entre equipes locais e internacionais.Revisar requisitos técnicos e funcionais, assegurando a aderência das soluções às necessidades do negócio.Negociar prioridades, gerenciar conflitos e apoiar a tomada de decisão junto aos stakeholders.Aplicar boas práticas de governança, gestão de portfólio e melhoria contínua.Desafiar processos e soluções existentes, buscando eficiência operacional, otimização de recursos e geração de valor para o negócio.\n\n\n\n\nRequisitos e qualificaçõesO que precisamos que você tenha de conhecimento:Ensino superior completo em Administração, Engenharia, Ciência da Computação, Tecnologia da Informação ou áreas correlatas.Experiência mínima de 10 anos em Tecnologia da Informação.Pelo menos 10 anos de experiência como Gerente de Projetos Sênior, conduzindo projetos complexos de TI.Certificação PMP (Project Management Professional – PMI) obrigatória.Experiência comprovada na gestão de projetos globais, estratégicos e multifuncionais.Experiência em pelo menos uma das seguintes frentes: Projetos de Dados, Inteligência Artificial (IA) ou Transformação Digital.Domínio de metodologias de gerenciamento de projetos, incluindo Waterfall, Ágil (Scrum) e modelos híbridos.Conhecimento em governança, gestão de portfólio, controle de indicadores e acompanhamento de resultados.Experiência com mapeamento, análise e revisão de processos.Capacidade de planejamento, análise crítica, gestão de riscos e resolução de problemas.Habilidade para negociar, gerenciar conflitos e influenciar stakeholders em diferentes níveis organizacionais.Excelente comunicação verbal e escrita, com capacidade de interação com equipes executivas e globais.Autonomia, organização e habilidade para coordenar equipes multidisciplinares em ambientes multiculturais.Disponibilidade para atuação híbrida em Belo Horizonte (BH).Inglês para conversação.&nbsp;Diferenciais:\nMBA ou pós-graduação em Gestão de Projetos, Tecnologia ou áreas correlatas.Certificações adicionais em gerenciamento de projetos ou metodologias ágeis.Experiência em empresas do segmento industrial ou de manufatura.Experiência em ambientes multinacionais e multiculturais.Conhecimento em português ou francês será considerado um diferencial.\n\nInformações adicionais🍛 Vale-alimentação ou vale-refeição;👨🏼‍🎓 Desconto em cursos, universidades e instituições de idiomas;📚 Academia Stefanini — plataforma com cursos on-line, gratuitos, atualizados e com certificado;🗣 Mentoring;💉 Clube de vantagens para consultas e exames;🏥 Assistência médica;🦷 Assistência odontológica;💰 Clube de vantagens e descontos nos melhores estabelecimentos;🛫 Clube de viagens;🐶 Convênio para pets.",
+      "careerPageName": "Stefanini Group",
+      "careerPageLogo": "https://attachments.gupy.io/production/companies/39703/career/84556/images/2024-10-08_17-35_companyLogoUrl.png",
+      "careerPageUrl": "",
+      "type": "vacancy_type_effective",
+      "publishedDate": "2026-10-02T17:56:34.420Z",
+      "workplaceType": "hybrid",
+      "city": "Belo Horizonte",
+      "state": "Minas Gerais",
+      "jobUrl": "https://stefanini.gupy.io/job/eyJqb2JJZCI6MTI2Njk4MzYsInNvdXJjZSI6Imd1cHlfcG9ydGFsIn0=?jobBoardSource=gupy_portal",
+      "badges": {
+        "friendlyBadge": true,
+        "isPWD": true
+      },
+      "disabilities": true
     },
     {
-      "id": 8123459,
-      "name": "Arquiteto de Software (Sem Cidade/Estado)",
-      "isRemoteWork": false,
-      "city": null,
-      "state": null
+      "id": 12669218,
+      "name": "Especialista de Recrutamento - Data Analytics - São Paulo-SP",
+      "applicationDeadline": "2026-11-01T00:00:00.000Z",
+      "description": "No Grupo Stefanini, acreditamos no poder da colaboração. Co-criamos soluções inovadoras em parceria com nossos clientes, combinando tecnologia de ponta, inteligência artificial e a criatividade humana. Estamos na vanguarda da resolução de problemas de negócios, proporcionando impacto real em escala global.Ao se juntar à Stefanini, você se torna parte de uma jornada global de transformação. Estamos empenhados em criar impacto positivo não apenas nos negócios, mas também na vida de nossos colaboradores. Se você procura uma oportunidade de crescimento profissional em uma empresa que valoriza inovação, respeito, autonomia e parceria, você encontra aqui!Junte-se a nós e seja parte da mudança!(Híbrido)(46206103)Responsabilidades e atribuiçõesBuscamos um(a) Especialista de Recrutamento para atuar como ponto focal de R&amp;S da Torre de Data Analytics, atendendo diferentes clientes finais e apoiando a operação na atração de profissionais especializados na área de Dados.Essa pessoa será responsável por compreender profundamente os cenários e desafios de recrutamento da torre, atuando de forma próxima às lideranças, gestão e operação para estruturar estratégias de atração, condução e fechamento das posições.Principais responsabilidadesAtuar como ponto focal de Recrutamento e Seleção para a Torre de Data Analytics, atendendo diferentes clientes e projetos;Realizar alinhamento de perfil com gestores, operação e demais stakeholders, compreendendo necessidades técnicas, comportamentais e de negócio;Conduzir processos seletivos de alto volume e alta complexidade, especialmente para posições relacionadas a Dados e Analytics;Atuar em vagas de difícil atração, identificando cenários de mercado, disponibilidade de profissionais, faixa salarial e possíveis desafios para fechamento;Desenvolver estratégias de sourcing e atração para profissionais especializados e perfis escassos no mercado;Acompanhar indicadores, prazos e andamento das posições, identificando gargalos e propondo planos de ação;Atuar de forma consultiva junto à gestão, trazendo visão de mercado, riscos e alternativas para as contratações;Apoiar a priorização das vagas conforme necessidade da operação e criticidade dos projetos;Conduzir processos seletivos para posições que demandem inglês, incluindo profissionais com atuação em ambientes multiculturais e/ou internacionais;Garantir comunicação próxima com gestores e operação durante todo o processo seletivo;Apoiar a construção e evolução de estratégias de recrutamento para a torre, contribuindo para melhoria contínua dos processos.Perfil que buscamosProfissional com forte experiência em recrutamento de TI, que tenha facilidade para atuar em cenários de alto volume, múltiplas prioridades e vagas desafiadoras. Esperamos uma pessoa que não apenas conduza os processos seletivos, mas que consiga entender o problema de contratação, antecipar dificuldades, orientar a gestão e propor estratégias para viabilizar as contratações.Será o principal elo entre R&amp;S, gestão e operação da Torre de Data Analytics, garantindo proximidade, visão de mercado e agilidade na condução das posições.\n\nRequisitos e qualificaçõesRequisitosExperiência sólida em Recrutamento e Seleção de Tecnologia;Experiência com alto volume de vagas, preferencialmente em ambientes de consultoria, outsourcing ou empresas com múltiplos clientes/projetos;Vivência com recrutamento de profissionais da área de Dados e Analytics, como Data Engineer, Data Analyst, Data Scientist, BI, Analytics Engineer, entre outros;Experiência com posições de difícil atração e alta complexidade;Experiência no recrutamento de profissionais com inglês;Capacidade de atuar de forma consultiva junto a gestores e áreas de negócio;Boa visão de mercado e capacidade de identificar desafios de atração, remuneração, disponibilidade e concorrência por talentos;Perfil analítico, organizado, comunicativo e com autonomia para conduzir múltiplas demandas simultaneamente.\n\nDiferenciais:Experiência em recrutamento para ambientes de Data &amp; Analytics;Vivência em operações com múltiplos clientes finais;Experiência com recrutamento de profissionais para projetos internacionais;Inglês avançado;Conhecimento de ferramentas de sourcing e hunting;Experiência com indicadores de R&amp;S e gestão de pipeline;Atuação prévia como Recruiter Sênior, Tech Recruiter Sênior, Talent Acquisition Specialist ou Recruiter Especialista.\n\nInformações adicionais🍛 Vale-alimentação ou vale-refeição;👨🏼‍🎓 Desconto em cursos, universidades e instituições de idiomas;📚 Academia Stefanini — plataforma com cursos on-line, gratuitos, atualizados e com certificado;🗣 Mentoring;💉 Clube de vantagens para consultas e exames;🏥 Assistência médica;🦷 Assistência odontológica;💰 Clube de vantagens e descontos nos melhores estabelecimentos;🛫 Clube de viagens;🐶 Convênio para pets.",
+      "careerPageName": "Stefanini Group",
+      "careerPageLogo": "https://attachments.gupy.io/production/companies/39703/career/84556/images/2024-10-08_17-35_companyLogoUrl.png",
+      "careerPageUrl": "",
+      "type": "vacancy_type_effective",
+      "publishedDate": "2026-10-02T17:15:15.623Z",
+      "workplaceType": "remote",
+      "city": "",
+      "state": "",
+      "jobUrl": "https://stefanini.gupy.io/job/eyJqb2JJZCI6MTI2NjkyMTgsInNvdXJjZSI6Imd1cHlfcG9ydGFsIn0=?jobBoardSource=gupy_portal",
+      "badges": {
+        "friendlyBadge": true,
+        "isPWD": true
+      },
+      "disabilities": true
+    },
+    {
+      "id": 12668833,
+      "name": "Analista Desenvolvedor Sr",
+      "applicationDeadline": "2026-12-01T00:00:00.000Z",
+      "description": "No Grupo Stefanini, acreditamos no poder da colaboração. Co-criamos soluções inovadoras em parceria com nossos clientes, combinando tecnologia de ponta, inteligência artificial e a criatividade humana. Estamos na vanguarda da resolução de problemas de negócios, proporcionando impacto real em escala global.Ao se juntar à Stefanini, você se torna parte de uma jornada global de transformação. Estamos empenhados em criar impacto positivo não apenas nos negócios, mas também na vida de nossos colaboradores. Se você procura uma oportunidade de crescimento profissional em uma empresa que valoriza inovação, respeito, autonomia e parceria, você encontra aqui!Junte-se a nós e seja parte da mudança!\n\n\n#LIONSITE\n\n﻿ #LI-SS1 \n\n\n\n\n\nResponsabilidades e atribuiçõesEstamos em busca de um Analista Desenvolvedor Java Sênior para se juntar ao nosso time. Você será responsável por:Desenvolver e implementar soluções de software utilizando a linguagem Java;Trabalhar com arquitetura e governança Power Platform;Gerenciar ambientes Dev / Test / Prod;Desenvolver fluxos complexos e reutilizáveis com Power Automate;Integrar com APIs e sistemas externos;Desenvolver aplicações escaláveis e componentes reutilizáveis com Power Apps;Trabalhar com modelagem corporativa de dados no Dataverse;Desenvolver agentes utilizando Copilot Studio e IA;Integrar agentes com Power Automate, APIs e dados corporativos;Trabalhar com APIs REST, JSON, OAuth 2.0 e Custom Connectors;Utilizar Git e CI/CD;Trabalhar com Power Platform Pipelines e/ou Azure DevOps.\n\nRequisitos e qualificações\nRequisitos desejáveis:Experiência com arquiteturas multiagentes no Copilot Studio;Conhecimento em Microsoft Graph;Experiência com Azure Functions e API Management;Conhecimento em JavaScript/TypeScript ou C#;Experiência com soluções de IA em ambientes corporativos.\n\nInformações adicionais🍛 Vale-alimentação ou vale-refeição;👨🏼‍🎓 Desconto em cursos, universidades e instituições de idiomas;📚 Academia Stefanini — plataforma com cursos on-line, gratuitos, atualizados e com certificado;🗣 Mentoring;💉 Clube de vantagens para consultas e exames;🏥 Assistência médica;🦷 Assistência odontológica;💰 Clube de vantagens e descontos nos melhores estabelecimentos;🛫 Clube de viagens;🐶 Convênio para pets.",
+      "careerPageName": "Stefanini Group",
+      "careerPageLogo": "https://attachments.gupy.io/production/companies/39703/career/84556/images/2024-10-08_17-35_companyLogoUrl.png",
+      "careerPageUrl": "",
+      "type": "vacancy_type_effective",
+      "publishedDate": "2026-10-02T15:54:23.501Z",
+      "workplaceType": "hybrid",
+      "city": "São Paulo",
+      "state": "São Paulo",
+      "jobUrl": "https://stefanini.gupy.io/job/eyJqb2JJZCI6MTI2Njg4MzMsInNvdXJjZSI6Imd1cHlfcG9ydGFsIn0=?jobBoardSource=gupy_portal",
+      "badges": {
+        "friendlyBadge": true,
+        "isPWD": true
+      },
+      "disabilities": true
+    },
+    {
+      "id": 12663599,
+      "name": "ANALISTA SUPORTE JR",
+      "applicationDeadline": "2026-10-31T00:00:00.000Z",
+      "description": "No Grupo Stefanini, acreditamos no poder da colaboração. Co-criamos soluções inovadoras em parceria com nossos clientes, combinando tecnologia de ponta, inteligência artificial e a criatividade humana. Estamos na vanguarda da resolução de problemas de negócios, proporcionando impacto real em escala global.Ao se juntar à Stefanini, você se torna parte de uma jornada global de transformação. Estamos empenhados em criar impacto positivo não apenas nos negócios, mas também na vida de nossos colaboradores. Se você procura uma oportunidade de crescimento profissional em uma empresa que valoriza inovação, respeito, autonomia e parceria, você encontra aqui!Junte-se a nós e seja parte da mudança!\n#LI-ONSITE\n\n\n#LI-AR1\n\nResponsabilidades e atribuiçõesAtendimento ao usuário, remotamente em presencialmente.Controle de fila de chamado e atendimento com base nos índices e SLA.Análise e Manutenção de desktops e Notebooks.Controle de Equipamentos, reserva técnica.Ensino técnico completoSuperior em andamento, ou completo.\n\nRequisitos e qualificaçõesO que precisamos que você tenha de conhecimento:Diferenciais:Informações adicionais🍛 Vale-alimentação ou vale-refeição;👨🏼‍🎓 Desconto em cursos, universidades e instituições de idiomas;📚 Academia Stefanini — plataforma com cursos on-line, gratuitos, atualizados e com certificado;🗣 Mentoring;💉 Clube de vantagens para consultas e exames;🏥 Assistência médica;🦷 Assistência odontológica;💰 Clube de vantagens e descontos nos melhores estabelecimentos;🛫 Clube de viagens;🐶 Convênio para pets.",
+      "careerPageName": "Stefanini Group",
+      "careerPageLogo": "https://attachments.gupy.io/production/companies/39703/career/84556/images/2024-10-08_17-35_companyLogoUrl.png",
+      "careerPageUrl": "",
+      "type": "vacancy_type_effective",
+      "publishedDate": "2026-10-02T15:35:53.935Z",
+      "workplaceType": "on-site",
+      "city": "Eldorado do Sul",
+      "state": "Rio Grande do Sul",
+      "jobUrl": "https://stefanini.gupy.io/job/eyJqb2JJZCI6MTI2NjM1OTksInNvdXJjZSI6Imd1cHlfcG9ydGFsIn0=?jobBoardSource=gupy_portal",
+      "badges": {
+        "friendlyBadge": true,
+        "isPWD": true
+      },
+      "disabilities": true
+    },
+    {
+      "id": 12668014,
+      "name": "Analista Desenvolvedor Backend Sr",
+      "applicationDeadline": "2026-12-01T00:00:00.000Z",
+      "description": "No Grupo Stefanini, acreditamos no poder da colaboração. Co-criamos soluções inovadoras em parceria com nossos clientes, combinando tecnologia de ponta, inteligência artificial e a criatividade humana. Estamos na vanguarda da resolução de problemas de negócios, proporcionando impacto real em escala global.Ao se juntar à Stefanini, você se torna parte de uma jornada global de transformação. Estamos empenhados em criar impacto positivo não apenas nos negócios, mas também na vida de nossos colaboradores. Se você procura uma oportunidade de crescimento profissional em uma empresa que valoriza inovação, respeito, autonomia e parceria, você encontra aqui!Junte-se a nós e seja parte da mudança!\n\n\n#LIONSITE\n\n﻿ #LI-SS1 \n\n\n\n\n\nResponsabilidades e atribuições\nEstamos buscando um Analista Desenvolvedor Java Sênior para se juntar à nossa equipe. O profissional será responsável por desenvolver e implementar novas funcionalidades em nossos sistemas, utilizando as tecnologias Java e Python. Além disso, deverá ter experiência com Git e Pipelines.\n\nRequisitos e qualificações\nRequisitos obrigatórios:Experiência com desenvolvimento em Java e Python;Conhecimento em Git e Pipelines.Desejável:Conhecimento em Arquitetura de Soluções/Software;Experiência com Arquitetura Cloud: AWS e Azure;Conhecimento em Terraform;Experiência com C# e Golang.\n\nDiferenciais:Informações adicionais🍛 Vale-alimentação ou vale-refeição;👨🏼‍🎓 Desconto em cursos, universidades e instituições de idiomas;📚 Academia Stefanini — plataforma com cursos on-line, gratuitos, atualizados e com certificado;🗣 Mentoring;💉 Clube de vantagens para consultas e exames;🏥 Assistência médica;🦷 Assistência odontológica;💰 Clube de vantagens e descontos nos melhores estabelecimentos;🛫 Clube de viagens;🐶 Convênio para pets.",
+      "careerPageName": "Stefanini Group",
+      "careerPageLogo": "https://attachments.gupy.io/production/companies/39703/career/84556/images/2024-10-08_17-35_companyLogoUrl.png",
+      "careerPageUrl": "",
+      "type": "vacancy_type_effective",
+      "publishedDate": "2026-10-02T14:56:54.048Z",
+      "workplaceType": "remote",
+      "city": "",
+      "state": "",
+      "jobUrl": "https://stefanini.gupy.io/job/eyJqb2JJZCI6MTI2NjgwMTQsInNvdXJjZSI6Imd1cHlfcG9ydGFsIn0=?jobBoardSource=gupy_portal",
+      "badges": {
+        "friendlyBadge": true,
+        "isPWD": true
+      },
+      "disabilities": true
+    },
+    {
+      "id": 12667054,
+      "name": "Analista Desenvolvedor Sr",
+      "applicationDeadline": "2026-12-01T00:00:00.000Z",
+      "description": "No Grupo Stefanini, acreditamos no poder da colaboração. Co-criamos soluções inovadoras em parceria com nossos clientes, combinando tecnologia de ponta, inteligência artificial e a criatividade humana. Estamos na vanguarda da resolução de problemas de negócios, proporcionando impacto real em escala global.Ao se juntar à Stefanini, você se torna parte de uma jornada global de transformação. Estamos empenhados em criar impacto positivo não apenas nos negócios, mas também na vida de nossos colaboradores. Se você procura uma oportunidade de crescimento profissional em uma empresa que valoriza inovação, respeito, autonomia e parceria, você encontra aqui!Junte-se a nós e seja parte da mudança!\n\n\n\n#LIONSITE\n\n﻿ #LI-SS1 \n\n\n\n\n\n\n\nResponsabilidades e atribuiçõesEstamos em busca de um Analista Desenvolvedor Java Sênior para se juntar ao nosso time. Você será responsável por:- Desenvolver e implementar soluções de software utilizando a linguagem Java;- Trabalhar com a arquitetura e governança da Power Platform;- Definir e gerir ambientes Dev / Test / Prod;- Desenvolver fluxos complexos e reutilizáveis no Power Automate;- Integrar com APIs e sistemas externos;- Desenvolver aplicações escaláveis e componentes reutilizáveis no Power Apps;- Trabalhar com modelagem corporativa de dados no Dataverse;- Desenvolver agentes utilizando Copilot Studio e IA;- Integrar agentes com Power Automate, APIs e dados corporativos;- Trabalhar com APIs REST, JSON, OAuth 2.0 e Custom Connectors;- Utilizar Git e CI/CD;- Trabalhar com Power Platform Pipelines e/ou Azure DevOps.Requisitos e qualificações\nRequisitos desejáveis:- Experiência com arquiteturas multiagentes no Copilot Studio;- Conhecimento em Microsoft Graph;- Experiência com Azure Functions e API Management;- Conhecimento em JavaScript/TypeScript ou C#;- Experiência com soluções de IA em ambientes corporativos.\n\nInformações adicionais🍛 Vale-alimentação ou vale-refeição;👨🏼‍🎓 Desconto em cursos, universidades e instituições de idiomas;📚 Academia Stefanini — plataforma com cursos on-line, gratuitos, atualizados e com certificado;🗣 Mentoring;💉 Clube de vantagens para consultas e exames;🏥 Assistência médica;🦷 Assistência odontológica;💰 Clube de vantagens e descontos nos melhores estabelecimentos;🛫 Clube de viagens;🐶 Convênio para pets.",
+      "careerPageName": "Stefanini Group",
+      "careerPageLogo": "https://attachments.gupy.io/production/companies/39703/career/84556/images/2024-10-08_17-35_companyLogoUrl.png",
+      "careerPageUrl": "",
+      "type": "vacancy_type_effective",
+      "publishedDate": "2026-10-02T14:07:23.517Z",
+      "workplaceType": "remote",
+      "city": "",
+      "state": "",
+      "jobUrl": "https://stefanini.gupy.io/job/eyJqb2JJZCI6MTI2NjcwNTQsInNvdXJjZSI6Imd1cHlfcG9ydGFsIn0=?jobBoardSource=gupy_portal",
+      "badges": {
+        "friendlyBadge": true,
+        "isPWD": true
+      },
+      "disabilities": true
+    },
+    {
+      "id": 12630267,
+      "name": "ENGENHEIRO DE DADOS SR - MICROSOFT FABRIC",
+      "applicationDeadline": "2026-11-28T00:00:00.000Z",
+      "description": "No Grupo Stefanini, acreditamos no poder da colaboração. Co-criamos soluções inovadoras em parceria com nossos clientes, combinando tecnologia de ponta, inteligência artificial e a criatividade humana. Estamos na vanguarda da resolução de problemas de negócios, proporcionando impacto real em escala global.Ao se juntar à Stefanini, você se torna parte de uma jornada global de transformação. Estamos empenhados em criar impacto positivo não apenas nos negócios, mas também na vida de nossos colaboradores. Se você procura uma oportunidade de crescimento profissional em uma empresa que valoriza inovação, respeito, autonomia e parceria, você encontra aqui!Junte-se a nós e seja parte da mudança!Requisitos e qualificaçõesBuscamos profissional senior especializado em Engenharia de Dados, com experiencia relevante em Microsoft Fabric e/AWS Datanricks e solidos conhecimentos conceituais que permitam atuar de forma intercambiavel entre diferentes tecnologias e arquiteturas de dados.O profissional sera responsavel por projetar, desenvolver, implementar e evoluir solucoes de dados escalaveis, confiaveis e eficientes, atuando desde a ingestao e transformacao das informacoes ate sua disponibilizacao para analises, inteligencia artificial e produtos de dados. Espera-se maturidade para assumir a responsabilidade por entregas, interagir com diferentes stakeholders e contribuir para decisoes tecnicas em ambientes de consultoria.\nPrincipais responsabilidadesProjetar e desenvolverpipelines de dados robustos, escaláveis e monitoráveis.Implementar soluções de:Ingestão;Transformação;Integração;Disponibilização de dados.Atuar em arquiteturas modernas de dados, incluindo:Data Lake;Lakehouse;Data Warehouse;Plataformas de Analytics.Desenvolver soluções utilizandoMicrosoft Fabric e/ou AWS Databricks.Aplicar conceitos de Engenharia de Dados de forma independente da tecnologia ou plataforma utilizada.Trabalhar em ambientes deMicrosoft Azure e AWS.Contribuir para decisões relacionadas à:Arquitetura de dados;Modelagem;Processamento;Qualidade;Segurança;Governança.Garantirconfiabilidade, observabilidade, performance e manutenibilidadedas soluções.Colaborar com profissionais deBI, Ciência de Dados, Engenharia de Software e áreas de negócio.Participar e conduzirreuniões técnicas e de alinhamento com clientes e stakeholders.Identificar oportunidades deautomação e aplicação de Inteligência Artificialpara aumentar produtividade e qualidade das entregas.Documentar soluções, decisões técnicas, processos e boas práticas.Assumir responsabilidade peloplanejamento, execução e entrega de produtos de dados.Requisitos obrigatóriosEnsino superior completo em: Tecnologia da Informação;Engenharia de Computação; Ciência da Computação; Sistemas de Informação; ou áreas correlatas.Experiência profissionalsênior em Engenharia de Dados.Sólidos conhecimentos em:Arquitetura de Dados;Modelagem e armazenamento de dados;Processamento Batch e Streaming;Integração e transformação de dados;Data Lakes, Lakehouses e Data Warehouses;Qualidade, governança, segurança e linhagem de dados;Orquestração e monitoramento de pipelines;Desenvolvimento, testes, versionamento e CI/CD.Experiência prática comMicrosoft Fabric e/ou AWS Databricks.Capacidade de atuar em diferentes plataformas, compreendendo os fundamentos de Engenharia de Dados independentemente da tecnologia.Experiência comprovada em ambientesMicrosoft Azure e AWS.Experiência no uso deInteligência Artificial aplicada às atividades profissionais.Capacidade de demonstrar ganhos concretos de produtividade obtidos com IA, como:Automação de tarefas;Aceleração do desenvolvimento;Apoio à documentação;Análise e resolução de problemas;Melhoria da qualidade das entregas.Inglês técnicopara leitura de documentações, artigos e materiais da área.Disponibilidade paradedicação integral em horário comercial.Disponibilidade para participação emreuniões virtuais com câmera aberta.Conhecimentos desejáveisExperiência com componentes doMicrosoft Fabric, como:Data Factory;Lakehouse;Data Warehouse;Spark;Notebooks;Pipelines.Experiência comDatabricks, incluindo:Notebooks;Clusters;Delta Lake;Workflows;Recursos de governança.Conhecimento deApache Spark, SQL e Python.Experiência com serviços de dados daAWS, como:Amazon S3;AWS Glue;Athena;Amazon EMR;Step Functions;Lambda.Conhecimento de ferramentas de:Orquestração;Mensageria;Observabilidade;Integração contínua.Experiência com práticas deDataOps, DevOps e Infrastructure as Code (IaC).Conhecimento deInteligência Artificial Generativae ferramentas de desenvolvimento assistido por IA.CertificaçõesMicrosoft, Databricks, Azure, AWSou relacionadas à Engenharia de Dados.Experiência anterior emempresas de consultoriaou projetos para diferentes clientes e segmentos.Competências comportamentaisBuscamos um profissional que:Tenhacomunicação clara e objetiva, adaptando-se a diferentes públicos.Saiba conduzirreuniões, apresentações e discussões técnicas.Tenha capacidade demediar conflitos e construir consensos.Trabalhe bem em equipe e valorize a colaboração.Sejaautodidata, curioso e comprometidocom atualização contínua.Tenha boa capacidade deorganização, gestão do tempo e priorização.Demonstre proatividade e forte orientação para entregas.Tenha maturidade profissional paratomar decisões e assumir responsabilidades.Saiba explicar conceitos técnicos de forma simples e conectá-los aosobjetivos do negócio.Tenha postura colaborativa em ambientes dinâmicos e multidisciplinares.UtilizeInteligência Artificial de forma consciente, produtiva e responsávelna rotina de trabalho. Modalidade de trabalho100% remoto.Dedicação integral em horário comercial.Participação em reuniões virtuais com câmera aberta.Atuação em ambiente colaborativo, dinâmico e orientado à entrega de soluções de dados de alto impacto.Perfil esperadoProfissionalsênior em Engenharia de Dados, com sólida base conceitual e experiência prática, capaz de transitar entreMicrosoft Fabric, Databricks, Azure e AWS.Esperamos alguém que combinedomínio técnico, visão de arquitetura, capacidade de adaptação, autonomia e maturidade profissional, assumindo responsabilidade por produtos de dados desde a concepção até a entrega e evolução contínua.\n\nInformações adicionais🍛 Vale-alimentação ou vale-refeição;👨🏼‍🎓 Desconto em cursos, universidades e instituições de idiomas;📚 Academia Stefanini — plataforma com cursos on-line, gratuitos, atualizados e com certificado;🗣 Mentoring;💉 Clube de vantagens para consultas e exames;🏥 Assistência médica;🦷 Assistência odontológica;💰 Clube de vantagens e descontos nos melhores estabelecimentos;🛫 Clube de viagens;🐶 Convênio para pets.",
+      "careerPageName": "Stefanini Group",
+      "careerPageLogo": "https://attachments.gupy.io/production/companies/39703/career/84556/images/2024-10-08_17-35_companyLogoUrl.png",
+      "careerPageUrl": "",
+      "type": "vacancy_type_effective",
+      "publishedDate": "2026-10-02T14:00:50.488Z",
+      "workplaceType": "remote",
+      "city": "",
+      "state": "",
+      "jobUrl": "https://stefanini.gupy.io/job/eyJqb2JJZCI6MTI2MzAyNjcsInNvdXJjZSI6Imd1cHlfcG9ydGFsIn0=?jobBoardSource=gupy_portal",
+      "badges": {
+        "friendlyBadge": true,
+        "isPWD": true
+      },
+      "disabilities": true
+    },
+    {
+      "id": 12666460,
+      "name": "ANALISTA DE PROCESSO PL - (Espanhol Avançado)",
+      "applicationDeadline": "2026-10-30T00:00:00.000Z",
+      "description": "No Grupo Stefanini, acreditamos no poder da colaboração. Co-criamos soluções inovadoras em parceria com nossos clientes, combinando tecnologia de ponta, inteligência artificial e a criatividade humana. Estamos na vanguarda da resolução de problemas de negócios, proporcionando impacto real em escala global.Ao se juntar à Stefanini, você se torna parte de uma jornada global de transformação. Estamos empenhados em criar impacto positivo não apenas nos negócios, mas também na vida de nossos colaboradores. Se você procura uma oportunidade de crescimento profissional em uma empresa que valoriza inovação, respeito, autonomia e parceria, você encontra aqui!Junte-se a nós e seja parte da mudança!\nBuscamos um(a)&nbsp;Analista de Processos Pleno&nbsp;para atuar na estruturação, transição e melhoria contínua de operações de clientes BPO. Essa pessoa será responsável por compreender diferentes negócios e áreas, mapear processos de ponta a ponta e identificar oportunidades que contribuam para a padronização, produtividade, automação e crescimento escalável das operações.A posição exigirá&nbsp;espanhol avançado, com foco na condução e apoio à transição de projetos da região&nbsp;LATAM.\n\nResponsabilidades e atribuiçõesEntender as operações, necessidades e particularidades de diferentes clientes e áreas.Conduzir e apoiar transições de novos contratos e projetos, especialmente da região LATAM.Mapear processos de ponta a ponta, identificando etapas, interfaces, riscos, gargalos e oportunidades de melhoria.Apoiar o redesenho e a documentação de processos operacionais.Identificar oportunidades de padronização, simplificação e aumento de eficiência.Estruturar e acompanhar indicadores de desempenho operacional.Capturar e mensurar ganhos de produtividade e eficiência.Identificar oportunidades de automação e apoiar sua implementação junto às áreas envolvidas.Atuar com melhoria contínua, propondo soluções para otimizar a operação e elevar a qualidade da entrega.Apoiar a construção de uma visão estratégica das operações BPO, conectando processos, indicadores e resultados do negócio.Contribuir para o crescimento escalável da operação, garantindo maior consistência, controle e sustentabilidade dos processos.Manter comunicação próxima com clientes e áreas internas, fortalecendo o relacionamento e garantindo o alinhamento das entregas.Requisitos e qualificaçõesO que precisamos que você tenha de conhecimento:Experiência com mapeamento, análise e redesenho de processos.Ensino superior cursando ou completo;Vivência com transição de operações, implantação de contratos ou projetos de transformação operacional.Conhecimento em melhoria contínua, padronização e identificação de oportunidades de automação.Experiência na definição e estruturação de indicadores de desempenho.Capacidade de analisar operações de diferentes clientes e segmentos.Espanhol avançado, para comunicação e atuação em projetos LATAM.Boa comunicação, organização e habilidade de relacionamento com clientes e áreas internas.Informações adicionais🍛 Vale-alimentação ou vale-refeição;👨🏼‍🎓 Desconto em cursos, universidades e instituições de idiomas;📚 Academia Stefanini — plataforma com cursos on-line, gratuitos, atualizados e com certificado;🗣 Mentoring;💉 Clube de vantagens para consultas e exames;🏥 Assistência médica;🦷 Assistência odontológica;💰 Clube de vantagens e descontos nos melhores estabelecimentos;🛫 Clube de viagens;🐶 Convênio para pets.",
+      "careerPageName": "Stefanini Group",
+      "careerPageLogo": "https://attachments.gupy.io/production/companies/39703/career/84556/images/2024-10-08_17-35_companyLogoUrl.png",
+      "careerPageUrl": "",
+      "type": "vacancy_type_effective",
+      "publishedDate": "2026-10-02T12:28:37.622Z",
+      "workplaceType": "remote",
+      "city": "",
+      "state": "",
+      "jobUrl": "https://stefanini.gupy.io/job/eyJqb2JJZCI6MTI2NjY0NjAsInNvdXJjZSI6Imd1cHlfcG9ydGFsIn0=?jobBoardSource=gupy_portal",
+      "badges": {
+        "friendlyBadge": true,
+        "isPWD": true
+      },
+      "disabilities": true
     }
   ],
   "pagination": {
-    "offset": 0,
-    "limit": 100,
-    "total": 4
+    "total": 260,
+    "limit": 10,
+    "offset": 0
   }
 }

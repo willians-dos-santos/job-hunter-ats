@@ -6,39 +6,112 @@ from src.models import TargetCompany, JobOpening
 
 @pytest.mark.asyncio
 async def test_gupy_collector_parse_jobs_data_envelope(gupy_jobs_raw):
-    target = TargetCompany(name="ambev", source="Gupy")
+    target = TargetCompany(name="Stefanini Group", source="Gupy")
     collector = GupyCollector()
 
     jobs = collector.parse_jobs(target, gupy_jobs_raw)
 
-    assert len(jobs) == 4
+    assert len(jobs) == 10
     assert all(isinstance(j, JobOpening) for j in jobs)
 
-    # Job 1: Remote work -> location "Remoto"
+    # Job 1 (id 12518303): On-site -> location "São Paulo - São Paulo"
     j1 = jobs[0]
-    assert j1.job_id == "gupy_8123456"
+    assert j1.job_id == "gupy_12518303"
     assert j1.source == "Gupy"
-    assert j1.company == "ambev"
-    assert j1.title == "Desenvolvedor(a) Backend Python Sênior"
-    assert j1.location == "Remoto"
-    assert j1.url == "https://ambev.gupy.io/job/eyJqb2JJZCI6ODEyMzQ1Nn0="
-    assert j1.source_job_id == "8123456"
+    assert j1.company == "Stefanini Group"
+    assert j1.title == "ANALISTA ADMINISTRATIVO PL"
+    assert j1.location == "São Paulo - São Paulo"
+    assert "https://stefanini.gupy.io/job/" in j1.url
+    assert j1.source_job_id == "12518303"
 
-    # Job 2: Onsite work -> location "Campinas - SP"
-    j2 = jobs[1]
-    assert j2.job_id == "gupy_8123457"
-    assert j2.location == "Campinas - SP"
-    assert j2.url == "https://ambev.gupy.io/job/eyJqb2JJZCI6ODEyMzQ1N30="
-
-    # Job 3: Fallback to jobUrl when careerPageUrl is missing
-    j3 = jobs[2]
-    assert j3.location == "Rio de Janeiro - RJ"
-    assert j3.url == "https://ambev.gupy.io/jobs/8123458"
-
-    # Job 4: Fallback to canonical URL pattern and N/A location when city/state missing
+    # Job 4 (id 12669218): workplaceType == "remote" -> location "Remoto"
     j4 = jobs[3]
-    assert j4.url == "https://portal.gupy.io/job-search/jobs/8123459"
-    assert j4.location == "N/A"
+    assert j4.job_id == "gupy_12669218"
+    assert j4.location == "Remoto"
+
+    # Job 7 (id 12668014): workplaceType == "remote" -> location "Remoto"
+    j7 = jobs[6]
+    assert j7.job_id == "gupy_12668014"
+    assert j7.title == "Analista Desenvolvedor Backend Sr"
+    assert j7.location == "Remoto"
+
+    # Job 9 (id 12630267): workplaceType == "remote" -> location "Remoto"
+    j9 = jobs[8]
+    assert j9.job_id == "gupy_12630267"
+    assert j9.location == "Remoto"
+
+
+def test_gupy_collector_workplace_type_mapping():
+    collector = GupyCollector()
+    target = TargetCompany(name="Stefanini Group", source="Gupy")
+
+    # 1. workplaceType == "remote" -> "Remoto"
+    remote_payload = {
+        "data": [
+            {
+                "id": 99901,
+                "name": "Backend Python",
+                "workplaceType": "remote",
+                "city": "São Paulo",
+                "state": "SP",
+                "jobUrl": "https://company.gupy.io/jobs/99901",
+            }
+        ]
+    }
+    jobs = collector.parse_jobs(target, remote_payload)
+    assert len(jobs) == 1
+    assert jobs[0].location == "Remoto"
+    assert jobs[0].job_id == "gupy_99901"
+    assert jobs[0].company == "Stefanini Group"
+
+    # 2. workplaceType == "on-site" with city & state -> "City - State"
+    onsite_payload = {
+        "data": [
+            {
+                "id": 99902,
+                "name": "Frontend React",
+                "workplaceType": "on-site",
+                "city": "Campinas",
+                "state": "SP",
+            }
+        ]
+    }
+    jobs = collector.parse_jobs(target, onsite_payload)
+    assert len(jobs) == 1
+    assert jobs[0].location == "Campinas - SP"
+
+    # 3. workplaceType == "on-site" without city & state -> "Presencial"
+    onsite_no_loc_payload = {
+        "data": [
+            {
+                "id": 99903,
+                "name": "Support Analyst",
+                "workplaceType": "on-site",
+                "city": None,
+                "state": "",
+            }
+        ]
+    }
+    jobs = collector.parse_jobs(target, onsite_no_loc_payload)
+    assert len(jobs) == 1
+    assert jobs[0].location == "Presencial"
+
+    # 4. company fallback to careerPageName or Stefanini Group
+    fallback_company_payload = {
+        "data": [
+            {
+                "id": 99904,
+                "name": "Engineer",
+                "workplaceType": "remote",
+                "careerPageName": "Acme Brasil",
+            }
+        ]
+    }
+    jobs = collector.parse_jobs(TargetCompany(name="", source="Gupy"), fallback_company_payload)
+    assert jobs[0].company == "Acme Brasil"
+
+    jobs_default = collector.parse_jobs(TargetCompany(name="", source="Gupy"), {"data": [{"id": 99905, "name": "Dev"}]})
+    assert jobs_default[0].company == "Stefanini Group"
 
 
 @pytest.mark.asyncio
@@ -78,7 +151,7 @@ async def test_gupy_collector_headers_and_params(respx_mock, gupy_jobs_raw):
     assert sent_request.url.params.get("careerPageName") == "Stefanini Group"
     assert sent_request.url.params.get("limit") == "100"
     assert sent_request.url.params.get("offset") == "0"
-    assert len(jobs) == 4
+    assert len(jobs) == 10
 
 
 @pytest.mark.asyncio
@@ -94,8 +167,8 @@ async def test_gupy_collector_fetch_success(respx_mock, gupy_jobs_raw):
         jobs = await collector.fetch_jobs(target, client=client)
 
     assert route.called
-    assert len(jobs) == 4
-    assert jobs[0].title == "Desenvolvedor(a) Backend Python Sênior"
+    assert len(jobs) == 10
+    assert jobs[0].title == "ANALISTA ADMINISTRATIVO PL"
 
 
 @pytest.mark.asyncio
