@@ -14,11 +14,11 @@ targets:
     source: "greenhouse"
   - name: "spotify"
     source: "lever"
-  - name: "automattic"
-    source: "greenhouse"
-  - name: "netflix"
-    source: "lever"
-  - name: "ambev"
+  - name: "Stefanini Group"
+    source: "Gupy"
+  - name: "PicPay"
+    source: "Gupy"
+  - name: "Ambev Tech"
     source: "Gupy"
 
 # Deterministic eligibility filters (User Story 2)

@@ -29,11 +29,10 @@ class BaseCollector(ABC):
         """Returns optional HTTP headers for requests."""
         return {}
 
-    async def fetch_jobs(
-        self, target: TargetCompany, client: Optional[httpx.AsyncClient] = None
+    async def fetch_jobs_from_url(
+        self, url: str, target: TargetCompany, client: Optional[httpx.AsyncClient] = None
     ) -> List[JobOpening]:
-        """Fetches and parses job openings from the target ATS with retry logic and error isolation."""
-        url = self.build_url(target)
+        """Fetches and parses job openings from a specific URL with retry logic and error isolation."""
         headers = self.get_headers()
         should_close = False
         if client is None:
@@ -60,7 +59,7 @@ class BaseCollector(ABC):
                             logger.error(f"Rate limit exceeded (429) for {target.name} after {self.max_retries} retries.")
                             return []
                     elif response.status_code == 404:
-                        logger.warning(f"Target company board not found (404): {target.name} on {target.source}")
+                        logger.warning(f"Target company board not found (404): {target.name} ({url})")
                         return []
                     else:
                         logger.warning(
@@ -81,3 +80,10 @@ class BaseCollector(ABC):
         finally:
             if should_close:
                 await client.aclose()
+
+    async def fetch_jobs(
+        self, target: TargetCompany, client: Optional[httpx.AsyncClient] = None
+    ) -> List[JobOpening]:
+        """Fetches and parses job openings from the target ATS with retry logic and error isolation."""
+        url = self.build_url(target)
+        return await self.fetch_jobs_from_url(url, target, client=client)

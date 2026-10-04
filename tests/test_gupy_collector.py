@@ -54,12 +54,12 @@ async def test_gupy_collector_edge_cases_empty_or_malformed():
 
 
 @pytest.mark.asyncio
-async def test_gupy_collector_headers_user_agent(respx_mock, gupy_jobs_raw):
+async def test_gupy_collector_headers(respx_mock, gupy_jobs_raw):
     target = TargetCompany(name="ambev", source="Gupy")
     collector = GupyCollector()
 
-    expected_url = "https://portal.api.gupy.io/api/v1/jobs?subdomain=ambev&limit=100"
-    route = respx_mock.get(expected_url).respond(
+    primary_url = "https://portal.api.gupy.io/api/v1/jobs?careerPageName=ambev&limit=100"
+    route = respx_mock.get(primary_url).respond(
         status_code=200, json=gupy_jobs_raw
     )
 
@@ -68,18 +68,78 @@ async def test_gupy_collector_headers_user_agent(respx_mock, gupy_jobs_raw):
 
     assert route.called
     sent_request = route.calls.last.request
-    # FR-002: User-Agent must be Mozilla/5.0
-    assert sent_request.headers.get("user-agent") == "Mozilla/5.0"
+    # Headers required: User-Agent and Accept: application/json
+    assert sent_request.headers.get("user-agent") == "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    assert sent_request.headers.get("accept") == "application/json"
     assert len(jobs) == 4
 
 
 @pytest.mark.asyncio
-async def test_gupy_collector_handles_404_gracefully(respx_mock):
+async def test_gupy_collector_primary_success(respx_mock, gupy_jobs_raw):
+    target = TargetCompany(name="ambev", source="Gupy")
+    collector = GupyCollector()
+
+    primary_url = "https://portal.api.gupy.io/api/v1/jobs?careerPageName=ambev&limit=100"
+    route = respx_mock.get(primary_url).respond(
+        status_code=200, json=gupy_jobs_raw
+    )
+
+    async with httpx.AsyncClient() as client:
+        jobs = await collector.fetch_jobs(target, client=client)
+
+    assert route.called
+    assert len(jobs) == 4
+
+
+@pytest.mark.asyncio
+async def test_gupy_collector_fallback_to_subdomain_on_404(respx_mock, gupy_jobs_raw):
+    target = TargetCompany(name="ambev", source="Gupy")
+    collector = GupyCollector()
+
+    primary_url = "https://portal.api.gupy.io/api/v1/jobs?careerPageName=ambev&limit=100"
+    fallback_url = "https://ambev.gupy.io/api/v1/jobs?limit=100"
+
+    primary_route = respx_mock.get(primary_url).respond(status_code=404)
+    fallback_route = respx_mock.get(fallback_url).respond(status_code=200, json=gupy_jobs_raw)
+
+    async with httpx.AsyncClient() as client:
+        jobs = await collector.fetch_jobs(target, client=client)
+
+    assert primary_route.called
+    assert fallback_route.called
+    assert len(jobs) == 4
+    assert jobs[0].title == "Desenvolvedor(a) Backend Python Sênior"
+
+
+@pytest.mark.asyncio
+async def test_gupy_collector_fallback_to_subdomain_on_empty(respx_mock, gupy_jobs_raw):
+    target = TargetCompany(name="ambev", source="Gupy")
+    collector = GupyCollector()
+
+    primary_url = "https://portal.api.gupy.io/api/v1/jobs?careerPageName=ambev&limit=100"
+    fallback_url = "https://ambev.gupy.io/api/v1/jobs?limit=100"
+
+    primary_route = respx_mock.get(primary_url).respond(status_code=200, json={"data": []})
+    fallback_route = respx_mock.get(fallback_url).respond(status_code=200, json=gupy_jobs_raw)
+
+    async with httpx.AsyncClient() as client:
+        jobs = await collector.fetch_jobs(target, client=client)
+
+    assert primary_route.called
+    assert fallback_route.called
+    assert len(jobs) == 4
+
+
+@pytest.mark.asyncio
+async def test_gupy_collector_handles_both_404_gracefully(respx_mock):
     target = TargetCompany(name="nonexistent", source="Gupy")
     collector = GupyCollector()
 
-    expected_url = "https://portal.api.gupy.io/api/v1/jobs?subdomain=nonexistent&limit=100"
-    respx_mock.get(expected_url).respond(status_code=404)
+    primary_url = "https://portal.api.gupy.io/api/v1/jobs?careerPageName=nonexistent&limit=100"
+    fallback_url = "https://nonexistent.gupy.io/api/v1/jobs?limit=100"
+
+    respx_mock.get(primary_url).respond(status_code=404)
+    respx_mock.get(fallback_url).respond(status_code=404)
 
     async with httpx.AsyncClient() as client:
         jobs = await collector.fetch_jobs(target, client=client)
@@ -88,12 +148,15 @@ async def test_gupy_collector_handles_404_gracefully(respx_mock):
 
 
 @pytest.mark.asyncio
-async def test_gupy_collector_handles_500_gracefully(respx_mock):
+async def test_gupy_collector_handles_both_500_gracefully(respx_mock):
     target = TargetCompany(name="ambev", source="Gupy")
     collector = GupyCollector()
 
-    expected_url = "https://portal.api.gupy.io/api/v1/jobs?subdomain=ambev&limit=100"
-    respx_mock.get(expected_url).respond(status_code=500)
+    primary_url = "https://portal.api.gupy.io/api/v1/jobs?careerPageName=ambev&limit=100"
+    fallback_url = "https://ambev.gupy.io/api/v1/jobs?limit=100"
+
+    respx_mock.get(primary_url).respond(status_code=500)
+    respx_mock.get(fallback_url).respond(status_code=500)
 
     async with httpx.AsyncClient() as client:
         jobs = await collector.fetch_jobs(target, client=client)
