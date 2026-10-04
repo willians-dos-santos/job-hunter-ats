@@ -7,22 +7,33 @@ concurrency_limit: 5
 database_path: "data/jobs.db"
 
 # Target ATS organisations to monitor (FR-003)
+# targets:
+#   - name: "gitlab"
+#     source: "greenhouse"
+#   - name: "canonical"
+#     source: "greenhouse"
+#   - name: "spotify"
+#     source: "lever"
+#   - name: "Stefanini Group"
+#     slug: "stefaninigroup"
+#     source: "Gupy"
+#   - name: "PicPay"
+#     slug: "picpay"
+#     source: "Gupy"
+#   - name: "Ambev Tech"
+#     slug: "ambevtech"
+#     source: "Gupy"
+
 targets:
-  - name: "gitlab"
-    source: "greenhouse"
-  - name: "canonical"
-    source: "greenhouse"
-  - name: "spotify"
-    source: "lever"
-  - name: "Stefanini Group"
-    slug: "stefaninigroup"
-    source: "Gupy"
-  - name: "PicPay"
-    slug: "picpay"
-    source: "Gupy"
-  - name: "Ambev Tech"
-    slug: "ambevtech"
-    source: "Gupy"
+  - name: "Vagas Python Brasil"
+    query: "Python"
+    source: "gupy_global"
+  - name: "Vagas Backend Brasil"
+    query: "Backend"
+    source: "gupy_global"
+  - name: "Vagas Java Brasil"
+    query: "Java"
+    source: "gupy_global"
 
 # Deterministic eligibility filters (User Story 2)
 filters:
