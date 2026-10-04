@@ -55,7 +55,7 @@ async def test_orchestrator_run_end_to_end(
         status_code=200, json=lever_jobs_raw
     )
     # Mock Gupy endpoint for ambev
-    respx_mock.get("https://portal.api.gupy.io/api/v1/jobs?careerPageName=ambev&limit=100").respond(
+    respx_mock.get("https://portal.gupy.io/api/job-search/jobs").respond(
         status_code=200, json=gupy_jobs_raw
     )
     # Mock Greenhouse endpoint for badcompany (returns 404 - fault isolation test)

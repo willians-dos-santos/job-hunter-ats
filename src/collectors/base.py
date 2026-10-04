@@ -29,8 +29,16 @@ class BaseCollector(ABC):
         """Returns optional HTTP headers for requests."""
         return {}
 
+    def build_params(self, target: TargetCompany) -> Optional[dict]:
+        """Returns optional query parameters for requests."""
+        return None
+
     async def fetch_jobs_from_url(
-        self, url: str, target: TargetCompany, client: Optional[httpx.AsyncClient] = None
+        self,
+        url: str,
+        target: TargetCompany,
+        client: Optional[httpx.AsyncClient] = None,
+        params: Optional[dict] = None,
     ) -> List[JobOpening]:
         """Fetches and parses job openings from a specific URL with retry logic and error isolation."""
         headers = self.get_headers()
@@ -42,7 +50,7 @@ class BaseCollector(ABC):
         try:
             for attempt in range(self.max_retries + 1):
                 try:
-                    response = await client.get(url, headers=headers)
+                    response = await client.get(url, headers=headers, params=params)
                     if response.status_code == 200:
                         raw_data = response.json()
                         return self.parse_jobs(target, raw_data)
@@ -86,4 +94,5 @@ class BaseCollector(ABC):
     ) -> List[JobOpening]:
         """Fetches and parses job openings from the target ATS with retry logic and error isolation."""
         url = self.build_url(target)
-        return await self.fetch_jobs_from_url(url, target, client=client)
+        params = self.build_params(target)
+        return await self.fetch_jobs_from_url(url, target, client=client, params=params)
