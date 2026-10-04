@@ -86,3 +86,19 @@ def test_target_company_supports_slug_alias():
 def test_target_company_invalid_source():
     with pytest.raises(ValidationError):
         TargetCompany(name="test", source="invalid_ats")
+
+
+def test_job_opening_and_target_company_support_gupy_source():
+    job = JobOpening(
+        job_id="gupy_999",
+        source="Gupy",
+        company="ambev",
+        title="Engenheiro de Software",
+        url="https://ambev.gupy.io/jobs/999",
+    )
+    assert job.source == "Gupy"
+    assert job.job_id == "gupy_999"
+
+    target = TargetCompany(name="ambev", source="Gupy")
+    assert target.source == "Gupy"
+

@@ -1,0 +1,42 @@
+{
+  "data": [
+    {
+      "id": 8123456,
+      "name": "Desenvolvedor(a) Backend Python Sênior",
+      "careerPageUrl": "https://ambev.gupy.io/job/eyJqb2JJZCI6ODEyMzQ1Nn0=",
+      "isRemoteWork": true,
+      "city": "São Paulo",
+      "state": "SP",
+      "publishedDate": "2026-10-01T12:00:00.000Z"
+    },
+    {
+      "id": 8123457,
+      "name": "Engenheiro(a) de Dados Pleno",
+      "careerPageUrl": "https://ambev.gupy.io/job/eyJqb2JJZCI6ODEyMzQ1N30=",
+      "isRemoteWork": false,
+      "city": "Campinas",
+      "state": "SP",
+      "publishedDate": "2026-10-02T14:30:00.000Z"
+    },
+    {
+      "id": 8123458,
+      "name": "Analista de Suporte (Com jobUrl)",
+      "jobUrl": "https://ambev.gupy.io/jobs/8123458",
+      "isRemoteWork": false,
+      "city": "Rio de Janeiro",
+      "state": "RJ"
+    },
+    {
+      "id": 8123459,
+      "name": "Arquiteto de Software (Sem Cidade/Estado)",
+      "isRemoteWork": false,
+      "city": null,
+      "state": null
+    }
+  ],
+  "pagination": {
+    "offset": 0,
+    "limit": 100,
+    "total": 4
+  }
+}

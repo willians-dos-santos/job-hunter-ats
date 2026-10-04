@@ -6,15 +6,15 @@
 
 **Status**: Draft
 
-**Input**: User description: "Construir um crawler assíncrono para recolha de vagas nas APIs públicas de ATS (Greenhouse e Lever), com filtros determinísticos, persistência SQLite e notificações de novas oportunidades."
+**Input**: User description: "Construir um crawler assíncrono para coletar vagas em APIs públicas de ATS (como Greenhouse e Lever), aplicando filtros determinísticos, armazenando os dados em SQLite e enviando notificações automáticas sobre novas oportunidades."
 
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Extração e Normalização de Vagas ATS (Priority: P1)
 
-Como engenheiro de software à procura de colocações remotas ou específicas, pretendo recolher vagas diretamente das APIs públicas da Greenhouse e da Lever num formato de dados uniforme, para que não precise de consultar múltiplos portais manualmente.
+Como engenheiro de software à procura de colocações remotas ou específicas, pretendo coletar vagas diretamente das APIs públicas da Greenhouse e da Lever num formato de dados uniforme, para que não precise de consultar múltiplos portais manualmente.
 
-**Why this priority**: É o núcleo do sistema (MVP primário); sem recolha e normalização fidedignas dos dados brutos, nenhuma etapa subsequente pode operar.
+**Why this priority**: É o núcleo do sistema — o MVP essencial. Sem uma coleta e normalização rigorosa dos dados brutos, nenhuma das etapas posteriores consegue funcionar de forma confiável.
 
 **Independent Test**: Pode ser testado de forma isolada injetando respostas mockadas em formato JSON dos dois fornecedores de ATS e verificando a conversão exata para o modelo canónico de dados.
 
@@ -43,7 +43,7 @@ Como utilizador, pretendo que o sistema filtre as vagas por palavras-chave de ca
 
 ### User Story 3 - Despacho de Alertas Estruturados (Priority: P3)
 
-Como utilizador, pretendo receber uma notificação estruturada (via Telegram Bot ou saída em consola) contendo os dados essenciais e o endereço direto da vaga para submissão imediata da candidatura.
+Como utilizador, pretendo receber uma notificação estruturada (via Telegram Bot ou saída em console) contendo os dados essenciais e o endereço direto da vaga para submissão imediata da candidatura.
 
 **Why this priority**: Fecha o ciclo de valor da ferramenta, entregando a informação no canal de comunicação do utilizador com fricção zero.
 
@@ -82,7 +82,7 @@ Como utilizador, pretendo receber uma notificação estruturada (via Telegram Bo
 
 ### Measurable Outcomes
 
-- **SC-001**: O ciclo de recolha, filtragem e persistência para um lote de 20 organizações monitorizadas deve concluir em menos de 15 segundos numa ligação de rede padrão.
+- **SC-001**: O ciclo de coleta, filtragem e persistência para um lote de 20 organizações monitorizadas deve concluir em menos de 15 segundos numa ligação de rede padrão.
 - **SC-002**: A taxa de falsos positivos na deduplicação deve ser estritamente de 0%, garantindo que nenhuma oportunidade repetida seja notificada duas vezes.
 - **SC-003**: Cobertura de testes unitários para os parsers de dados da Greenhouse e da Lever superior a 90%, validada via `pytest`.
 

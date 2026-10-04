@@ -23,3 +23,9 @@ def lever_jobs_raw() -> list:
 def lever_edge_cases_raw() -> list:
     with open(FIXTURES_DIR / "lever_edge_cases.json", "r", encoding="utf-8") as f:
         return json.load(f)
+
+@pytest.fixture
+def gupy_jobs_raw() -> dict:
+    with open(FIXTURES_DIR / "gupy_jobs.json", "r", encoding="utf-8") as f:
+        return json.load(f)
+

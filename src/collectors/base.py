@@ -25,11 +25,16 @@ class BaseCollector(ABC):
         """Parses the raw API response into a list of JobOpening models."""
         pass
 
+    def get_headers(self) -> dict:
+        """Returns optional HTTP headers for requests."""
+        return {}
+
     async def fetch_jobs(
         self, target: TargetCompany, client: Optional[httpx.AsyncClient] = None
     ) -> List[JobOpening]:
         """Fetches and parses job openings from the target ATS with retry logic and error isolation."""
         url = self.build_url(target)
+        headers = self.get_headers()
         should_close = False
         if client is None:
             client = httpx.AsyncClient(timeout=15.0)
@@ -38,7 +43,7 @@ class BaseCollector(ABC):
         try:
             for attempt in range(self.max_retries + 1):
                 try:
-                    response = await client.get(url)
+                    response = await client.get(url, headers=headers)
                     if response.status_code == 200:
                         raw_data = response.json()
                         return self.parse_jobs(target, raw_data)

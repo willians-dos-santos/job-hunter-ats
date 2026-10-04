@@ -18,6 +18,8 @@ targets:
     source: "greenhouse"
   - name: "netflix"
     source: "lever"
+  - name: "ambev"
+    source: "Gupy"
 
 # Deterministic eligibility filters (User Story 2)
 filters:
@@ -37,7 +39,9 @@ filters:
   # Location must match at least one of these keywords (case-insensitive)
   location_keywords:
     - "Remote"
+    - "Remoto"
     - "Brazil"
+    - "Brasil"
     - "Portugal"
     - "Worldwide"
     - "Anywhere"

@@ -11,6 +11,7 @@ import yaml
 from src.collectors.base import BaseCollector
 from src.collectors.greenhouse import GreenhouseCollector
 from src.collectors.lever import LeverCollector
+from src.collectors.gupy import GupyCollector
 from src.filters import JobFilter
 from src.models import JobOpening, TargetCompany
 from src.notifiers import ConsoleNotifier, NotificationDispatcher, TelegramNotifier
@@ -47,9 +48,12 @@ class CrawlerOrchestrator:
         self.storage = storage
         self.dispatcher = dispatcher
         self.concurrency_limit = concurrency_limit
+        gupy_collector = GupyCollector()
         self.collectors: Dict[str, BaseCollector] = {
             "greenhouse": GreenhouseCollector(),
             "lever": LeverCollector(),
+            "Gupy": gupy_collector,
+            "gupy": gupy_collector,
         }
 
     @classmethod

@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 class JobOpening(BaseModel):
     """Normalized canonical model for a job opening."""
     job_id: str = Field(..., description="Canonical globally unique ID, e.g. 'greenhouse:acme:12345'")
-    source: Literal["greenhouse", "lever"] = Field(..., description="Source ATS platform")
+    source: Literal["greenhouse", "lever", "Gupy", "gupy"] = Field(..., description="Source ATS platform")
     company: str = Field(..., description="Company name or slug")
     title: str = Field(..., description="Job opening title")
     location: str = Field(default="N/A", description="Job location or 'N/A' if unspecified")
@@ -34,7 +34,7 @@ class JobOpening(BaseModel):
 class TargetCompany(BaseModel):
     """Target company ATS configuration."""
     name: str = Field(..., description="Company name or slug")
-    source: Literal["greenhouse", "lever"] = Field(..., description="Target ATS platform")
+    source: Literal["greenhouse", "lever", "Gupy", "gupy"] = Field(..., description="Target ATS platform")
 
     @model_validator(mode="before")
     @classmethod
