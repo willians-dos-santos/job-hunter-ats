@@ -15,10 +15,13 @@ targets:
   - name: "spotify"
     source: "lever"
   - name: "Stefanini Group"
+    slug: "stefaninigroup"
     source: "Gupy"
   - name: "PicPay"
+    slug: "picpay"
     source: "Gupy"
   - name: "Ambev Tech"
+    slug: "ambevtech"
     source: "Gupy"
 
 # Deterministic eligibility filters (User Story 2)
@@ -54,7 +57,7 @@ filters:
 # Notification channels configuration (FR-005, User Story 3)
 telegram:
   # Set to true to enable Telegram alerts (also requires bot_token and chat_id)
-  enabled: false
+  enabled: true
   # Alternatively provide via TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID env vars
   bot_token: null
   chat_id: null

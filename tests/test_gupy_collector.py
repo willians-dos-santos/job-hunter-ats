@@ -162,3 +162,46 @@ async def test_gupy_collector_handles_both_500_gracefully(respx_mock):
         jobs = await collector.fetch_jobs(target, client=client)
 
     assert jobs == []
+
+
+@pytest.mark.asyncio
+async def test_gupy_collector_sanitizes_names_with_spaces_and_special_chars(respx_mock, gupy_jobs_raw):
+    # Case 1: Company name with spaces -> primary encoded, fallback sanitized without spaces
+    target_spaces = TargetCompany(name="Stefanini Group", source="Gupy")
+    collector = GupyCollector()
+
+    assert " " not in collector.get_slug(target_spaces)
+    assert collector.get_slug(target_spaces) == "stefanini-group"
+    assert collector.build_url(target_spaces) == "https://portal.api.gupy.io/api/v1/jobs?careerPageName=Stefanini+Group&limit=100"
+    assert collector.build_fallback_url(target_spaces) == "https://stefanini-group.gupy.io/api/v1/jobs?limit=100"
+
+    # Mock primary 404 and fallback 200
+    respx_mock.get("https://portal.api.gupy.io/api/v1/jobs?careerPageName=Stefanini+Group&limit=100").respond(status_code=404)
+    respx_mock.get("https://stefanini-group.gupy.io/api/v1/jobs?limit=100").respond(status_code=200, json=gupy_jobs_raw)
+
+    async with httpx.AsyncClient() as client:
+        jobs = await collector.fetch_jobs(target_spaces, client=client)
+
+    assert len(jobs) == 4
+    # Check that generated job URL uses sanitized slug
+    assert " " not in jobs[3].url
+
+
+@pytest.mark.asyncio
+async def test_gupy_collector_uses_explicit_slug_prioritized(respx_mock, gupy_jobs_raw):
+    # Case 2: Company has explicit slug provided
+    target_explicit = TargetCompany(name="Stefanini Group", slug="stefaninigroup", source="Gupy")
+    collector = GupyCollector()
+
+    assert collector.get_slug(target_explicit) == "stefaninigroup"
+    assert collector.build_fallback_url(target_explicit) == "https://stefaninigroup.gupy.io/api/v1/jobs?limit=100"
+
+    respx_mock.get("https://portal.api.gupy.io/api/v1/jobs?careerPageName=Stefanini+Group&limit=100").respond(status_code=404)
+    respx_mock.get("https://stefaninigroup.gupy.io/api/v1/jobs?limit=100").respond(status_code=200, json=gupy_jobs_raw)
+
+    async with httpx.AsyncClient() as client:
+        jobs = await collector.fetch_jobs(target_explicit, client=client)
+
+    assert len(jobs) == 4
+    assert jobs[0].url.startswith("https://")
+

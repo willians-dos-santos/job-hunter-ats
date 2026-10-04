@@ -1,4 +1,5 @@
 from datetime import datetime
+import re
 from typing import Literal, Optional
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -30,11 +31,11 @@ class JobOpening(BaseModel):
             self.source_job_id = parts[-1] if len(parts) > 1 else self.job_id
         return self
 
-
 class TargetCompany(BaseModel):
     """Target company ATS configuration."""
     name: str = Field(..., description="Company name or slug")
     source: Literal["greenhouse", "lever", "Gupy", "gupy"] = Field(..., description="Target ATS platform")
+    slug: Optional[str] = Field(default=None, description="Explicit slug identifier")
 
     @model_validator(mode="before")
     @classmethod
@@ -42,4 +43,14 @@ class TargetCompany(BaseModel):
         if isinstance(values, dict):
             if "name" not in values and "slug" in values:
                 values["name"] = values["slug"]
+            if "slug" not in values and "name" in values:
+                values["slug"] = values["name"]
         return values
+
+    @property
+    def clean_slug(self) -> str:
+        """Returns a sanitized slug (lowercase, no spaces, alphanumeric and hyphens only)."""
+        raw = (self.slug or self.name).strip().lower()
+        cleaned = re.sub(r"[^a-z0-9-]", "", raw.replace(" ", "-").replace("_", "-"))
+        return re.sub(r"-+", "-", cleaned).strip("-")
+

@@ -1,6 +1,8 @@
 from datetime import datetime
 import logging
+import re
 from typing import Any, List, Optional
+import urllib.parse
 import httpx
 from src.collectors.base import BaseCollector
 from src.models import JobOpening, TargetCompany
@@ -11,13 +13,23 @@ logger = logging.getLogger(__name__)
 class GupyCollector(BaseCollector):
     """Collector adapter for Gupy public careers portal API with subdomain fallback."""
 
+    def get_slug(self, target: TargetCompany) -> str:
+        """Returns sanitized slug from target (lowercase, alphanumeric and hyphens only, no spaces)."""
+        if hasattr(target, "clean_slug") and target.clean_slug:
+            return target.clean_slug
+        raw = getattr(target, "slug", None) or target.name
+        cleaned = re.sub(r"[^a-z0-9-]", "", str(raw).strip().lower().replace(" ", "-"))
+        return re.sub(r"-+", "-", cleaned).strip("-")
+
     def build_url(self, target: TargetCompany) -> str:
-        # Portal endpoint querying by careerPageName
-        return f"https://portal.api.gupy.io/api/v1/jobs?careerPageName={target.name}&limit=100"
+        # Portal endpoint querying by careerPageName with safe URL encoding
+        encoded_name = urllib.parse.quote_plus(target.name)
+        return f"https://portal.api.gupy.io/api/v1/jobs?careerPageName={encoded_name}&limit=100"
 
     def build_fallback_url(self, target: TargetCompany) -> str:
-        # Fallback to direct company subdomain endpoint
-        return f"https://{target.name}.gupy.io/api/v1/jobs?limit=100"
+        # Fallback to direct company subdomain endpoint using only sanitized slug
+        slug = self.get_slug(target)
+        return f"https://{slug}.gupy.io/api/v1/jobs?limit=100"
 
     def get_headers(self) -> dict:
         return {
@@ -33,6 +45,14 @@ class GupyCollector(BaseCollector):
         jobs = await self.fetch_jobs_from_url(primary_url, target, client=client)
         if jobs:
             return jobs
+
+        slug = self.get_slug(target)
+        # CRITICAL: Never attempt subdomain resolution if slug contains spaces or is empty (prevents Errno 11001)
+        if not slug or " " in slug:
+            logger.warning(
+                f"Cannot perform direct subdomain fallback for '{target.name}': invalid or empty slug."
+            )
+            return []
 
         fallback_url = self.build_fallback_url(target)
         logger.info(
@@ -65,10 +85,11 @@ class GupyCollector(BaseCollector):
             title = str(item.get("name") or "").strip()
 
             # Canonical URL resolution
+            slug = self.get_slug(target)
             url = (
                 item.get("careerPageUrl")
                 or item.get("jobUrl")
-                or f"https://{target.name}.gupy.io/jobs/{raw_id_str}"
+                or f"https://{slug}.gupy.io/jobs/{raw_id_str}"
             )
 
             # Location formatting
