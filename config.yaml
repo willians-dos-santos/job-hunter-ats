@@ -1,0 +1,56 @@
+# Job Hunter ATS Configuration
+
+# Concurrency control (asyncio.Semaphore) to mitigate rate limiting (FR-006)
+concurrency_limit: 5
+
+# SQLite persistence path for deduplication and idempotency (FR-004)
+database_path: "data/jobs.db"
+
+# Target ATS organisations to monitor (FR-003)
+targets:
+  - name: "gitlab"
+    source: "greenhouse"
+  - name: "canonical"
+    source: "greenhouse"
+  - name: "spotify"
+    source: "lever"
+  - name: "automattic"
+    source: "greenhouse"
+  - name: "netflix"
+    source: "lever"
+
+# Deterministic eligibility filters (User Story 2)
+filters:
+  # Title must match at least one of these keywords (case-insensitive)
+  title_keywords:
+    - "Python"
+    - "Backend"
+    - "Software Engineer"
+    - "Data Engineer"
+
+  # Title must NOT contain any of these keywords
+  title_exclude:
+    - "Junior"
+    - "Intern"
+    - "Estágio"
+
+  # Location must match at least one of these keywords (case-insensitive)
+  location_keywords:
+    - "Remote"
+    - "Brazil"
+    - "Portugal"
+    - "Worldwide"
+    - "Anywhere"
+
+  # Location must NOT contain any of these keywords
+  location_exclude:
+    - "US Only"
+    - "Onsite"
+
+# Notification channels configuration (FR-005, User Story 3)
+telegram:
+  # Set to true to enable Telegram alerts (also requires bot_token and chat_id)
+  enabled: false
+  # Alternatively provide via TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID env vars
+  bot_token: null
+  chat_id: null

@@ -1,0 +1,32 @@
+{
+  "jobs": [
+    {
+      "id": 999001,
+      "title": "Backend Developer (Null Location)",
+      "location": null,
+      "absolute_url": "https://boards.greenhouse.io/acme/jobs/999001",
+      "updated_at": "2026-10-03T10:00:00Z"
+    },
+    {
+      "id": 999002,
+      "title": "Systems Architect (Empty Location Dict)",
+      "location": {},
+      "absolute_url": "https://boards.greenhouse.io/acme/jobs/999002",
+      "updated_at": "2026-10-03T11:00:00Z"
+    },
+    {
+      "id": 999003,
+      "title": "DevOps Engineer (Missing Location Key)",
+      "absolute_url": "https://boards.greenhouse.io/acme/jobs/999003"
+    },
+    {
+      "id": 999004,
+      "title": "Site Reliability Engineer (Null Updated At)",
+      "location": {
+        "name": "Remote"
+      },
+      "absolute_url": "https://boards.greenhouse.io/acme/jobs/999004",
+      "updated_at": null
+    }
+  ]
+}
