@@ -5,13 +5,14 @@ from pathlib import Path
 from src.main import CrawlerOrchestrator, load_config
 from src.models import TargetCompany, JobOpening
 from src.filters import JobFilter
-from src.storage import SQLiteStorage
+from src.storage import SQLiteStorage, SupabaseStorage
 
 
 @pytest.fixture
 def sample_config_file(tmp_path):
     config = {
         "concurrency_limit": 2,
+        "storage_type": "sqlite",
         "database_path": str(tmp_path / "orchestrator_test.db"),
         "targets": [
             {"name": "acme", "source": "greenhouse"},
@@ -81,3 +82,35 @@ async def test_orchestrator_run_end_to_end(
     # Second crawl run: all jobs are marked as seen, notified_jobs is 0
     second_run_notified = await orchestrator.run()
     assert len(second_run_notified) == 0
+
+
+def test_orchestrator_initializes_supabase_storage(tmp_path, monkeypatch):
+    monkeypatch.setenv("SUPABASE_URL", "https://mock.supabase.co")
+    monkeypatch.setenv("SUPABASE_KEY", "mock-key")
+    config = {
+        "concurrency_limit": 1,
+        "storage_type": "supabase",
+        "targets": [],
+    }
+    file_path = tmp_path / "supabase_config.yaml"
+    with open(file_path, "w", encoding="utf-8") as f:
+        yaml.dump(config, f)
+    orchestrator = CrawlerOrchestrator.from_config_file(str(file_path))
+    assert isinstance(orchestrator.storage, SupabaseStorage)
+
+
+def test_orchestrator_falls_back_to_sqlite(tmp_path, monkeypatch):
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    monkeypatch.delenv("SUPABASE_KEY", raising=False)
+    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+    config = {
+        "concurrency_limit": 1,
+        "database_path": str(tmp_path / "fallback.db"),
+        "targets": [],
+    }
+    file_path = tmp_path / "fallback_config.yaml"
+    with open(file_path, "w", encoding="utf-8") as f:
+        yaml.dump(config, f)
+    orchestrator = CrawlerOrchestrator.from_config_file(str(file_path))
+    assert isinstance(orchestrator.storage, SQLiteStorage)
+

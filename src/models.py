@@ -15,6 +15,30 @@ class JobOpening(BaseModel):
     published_at: Optional[datetime] = Field(default=None, description="Publication timestamp")
     source_job_id: str = Field(default="", description="Platform raw identifier")
 
+    @model_validator(mode="before")
+    @classmethod
+    def support_aliases(cls, values: dict) -> dict:
+        if isinstance(values, dict):
+            if "job_id" not in values and "id" in values:
+                values["job_id"] = values["id"]
+            if "source" not in values and "ats" in values:
+                values["source"] = values["ats"]
+            if "source_job_id" not in values and "external_id" in values:
+                values["source_job_id"] = values["external_id"]
+        return values
+
+    @property
+    def id(self) -> str:
+        return self.job_id
+
+    @property
+    def ats(self) -> str:
+        return self.source
+
+    @property
+    def external_id(self) -> str:
+        return self.source_job_id
+
     @field_validator("location", mode="before")
     @classmethod
     def normalize_location(cls, v: Optional[str]) -> str:

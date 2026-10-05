@@ -3,8 +3,12 @@
 # Concurrency control (asyncio.Semaphore) to mitigate rate limiting (FR-006)
 concurrency_limit: 5
 
-# SQLite persistence path for deduplication and idempotency (FR-004)
+# Persistence adapter type: "supabase" (cloud PostgreSQL) or "sqlite" (local fallback)
+storage_type: "supabase"
+
+# SQLite persistence path for fallback deduplication and idempotency
 database_path: "data/jobs.db"
+
 
 # Target ATS organisations to monitor (FR-003)
 # targets:

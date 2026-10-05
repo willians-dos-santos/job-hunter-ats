@@ -4,11 +4,12 @@ load_dotenv()
 
 import argparse
 import asyncio
+import inspect
 import logging
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 import httpx
 import yaml
 
@@ -20,7 +21,7 @@ from src.config import load_config
 from src.filters import JobFilter
 from src.models import JobOpening, TargetCompany
 from src.notifiers import ConsoleNotifier, NotificationDispatcher, TelegramNotifier
-from src.storage import SQLiteStorage
+from src.storage import SQLiteStorage, SupabaseStorage
 
 logger = logging.getLogger("job_hunter_ats")
 
@@ -32,7 +33,7 @@ class CrawlerOrchestrator:
         self,
         targets: List[TargetCompany],
         job_filter: JobFilter,
-        storage: SQLiteStorage,
+        storage: Union[SQLiteStorage, SupabaseStorage, Any],
         dispatcher: NotificationDispatcher,
         concurrency_limit: int = 5,
     ) -> None:
@@ -58,8 +59,25 @@ class CrawlerOrchestrator:
         filters_cfg = config.get("filters", {})
         job_filter = JobFilter(**filters_cfg)
 
-        db_path = config.get("database_path", "jobs.db")
-        storage = SQLiteStorage(db_path=db_path)
+        # Storage resolution: Check environment or config for Supabase, with safe fallback to SQLite
+        storage_type = config.get("storage_type") or os.getenv("STORAGE_TYPE")
+        supabase_url = os.getenv("SUPABASE_URL")
+        supabase_key = os.getenv("SUPABASE_KEY") or os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+
+        storage: Union[SQLiteStorage, SupabaseStorage]
+        if storage_type == "supabase" or (storage_type != "sqlite" and supabase_url and supabase_key):
+            try:
+                storage = SupabaseStorage(url=supabase_url, key=supabase_key)
+                logger.info("Configured SupabaseStorage as primary persistence adapter.")
+            except Exception as exc:
+                logger.warning(
+                    f"Failed to initialize SupabaseStorage ({exc}). Falling back to SQLiteStorage."
+                )
+                db_path = config.get("database_path", "jobs.db")
+                storage = SQLiteStorage(db_path=db_path)
+        else:
+            db_path = config.get("database_path", "jobs.db")
+            storage = SQLiteStorage(db_path=db_path)
 
         # Telegram configuration (respecting env vars and config)
         tg_cfg = config.get("telegram", {})
@@ -135,11 +153,35 @@ class CrawlerOrchestrator:
             logger.info(f"Jobs matching filter criteria: {len(matching_jobs)}")
 
             # Filter out seen jobs (deduplication & idempotency)
-            new_jobs = self.storage.filter_new_jobs(matching_jobs)
+            if inspect.iscoroutinefunction(self.storage.filter_new_jobs):
+                new_jobs = await self.storage.filter_new_jobs(matching_jobs)
+            elif hasattr(self.storage, "filter_new_jobs"):
+                new_jobs = self.storage.filter_new_jobs(matching_jobs)
+            else:
+                new_jobs = []
+                for job in matching_jobs:
+                    job_id = getattr(job, "id", None) or getattr(job, "job_id", "")
+                    seen = (
+                        await self.storage.is_seen(job_id)
+                        if inspect.iscoroutinefunction(self.storage.is_seen)
+                        else self.storage.is_seen(job_id)
+                    )
+                    if not seen:
+                        new_jobs.append(job)
+
             logger.info(f"New unseen jobs to notify: {len(new_jobs)}")
 
             for job in new_jobs:
-                self.storage.mark_as_seen(job)
+                if inspect.iscoroutinefunction(self.storage.mark_as_seen):
+                    await self.storage.mark_as_seen(job)
+                elif hasattr(self.storage, "mark_as_seen"):
+                    self.storage.mark_as_seen(job)
+                elif hasattr(self.storage, "save_job"):
+                    if inspect.iscoroutinefunction(self.storage.save_job):
+                        await self.storage.save_job(job)
+                    else:
+                        self.storage.save_job(job)
+
                 await self.dispatcher.notify(job, client=client)
                 notified_jobs.append(job)
 
