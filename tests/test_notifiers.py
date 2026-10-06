@@ -1,11 +1,12 @@
+from datetime import datetime, timezone
+import httpx
 import pytest
 import respx
-import httpx
 from src.models import JobOpening
-from src.notifiers import TelegramNotifier, ConsoleNotifier, NotificationDispatcher
+from src.notifiers import ConsoleNotifier, NotificationDispatcher, TelegramNotifier
 
 
-def make_sample_job() -> JobOpening:
+def make_sample_job(published_at: datetime | None = None) -> JobOpening:
     return JobOpening(
         job_id="greenhouse:acme:123456",
         source="greenhouse",
@@ -13,6 +14,7 @@ def make_sample_job() -> JobOpening:
         title="Senior Python Backend Engineer",
         location="Remote, Worldwide",
         url="https://boards.greenhouse.io/acme/jobs/123456",
+        published_at=published_at,
     )
 
 
@@ -35,9 +37,14 @@ async def test_telegram_notifier_sends_markdown_message(respx_mock):
     chat_id = "987654321"
 
     notifier = TelegramNotifier(bot_token=bot_token, chat_id=chat_id)
-    job = make_sample_job()
+    # Testa com data de publicação preenchida
+    job = make_sample_job(
+        published_at=datetime(2026, 10, 6, 14, 30, tzinfo=timezone.utc)
+    )
 
-    route = respx_mock.post(f"https://api.telegram.org/bot{bot_token}/sendMessage").respond(
+    route = respx_mock.post(
+        f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    ).respond(
         status_code=200,
         json={"ok": True, "result": {}},
     )
@@ -53,6 +60,30 @@ async def test_telegram_notifier_sends_markdown_message(respx_mock):
     assert chat_id in body
     assert "Senior Python Backend Engineer" in body
     assert "https://boards.greenhouse.io/acme/jobs/123456" in body
+    assert "06/10/2026 14:30" in body
+
+
+@pytest.mark.asyncio
+async def test_telegram_notifier_handles_none_published_at(respx_mock):
+    bot_token = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+    chat_id = "987654321"
+
+    notifier = TelegramNotifier(bot_token=bot_token, chat_id=chat_id)
+    job = make_sample_job(published_at=None)
+
+    route = respx_mock.post(
+        f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    ).respond(
+        status_code=200,
+        json={"ok": True, "result": {}},
+    )
+
+    async with httpx.AsyncClient() as client:
+        success = await notifier.notify(job, client=client)
+
+    assert success is True
+    body = route.calls.last.request.read().decode("utf-8")
+    assert "Data não informada" in body
 
 
 @pytest.mark.asyncio
@@ -63,7 +94,9 @@ async def test_telegram_notifier_error_does_not_crash(respx_mock):
     notifier = TelegramNotifier(bot_token=bot_token, chat_id=chat_id)
     job = make_sample_job()
 
-    respx_mock.post(f"https://api.telegram.org/bot{bot_token}/sendMessage").respond(
+    respx_mock.post(
+        f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    ).respond(
         status_code=400,
         json={"ok": False, "description": "Bad Request: chat not found"},
     )
@@ -76,8 +109,9 @@ async def test_telegram_notifier_error_does_not_crash(respx_mock):
 
 @pytest.mark.asyncio
 async def test_dispatcher_fallback_to_console_when_no_telegram(capsys):
-    # Scenario 2: When no telegram credentials are provided, prints to console without error
-    dispatcher = NotificationDispatcher(telegram_notifier=None, console_notifier=ConsoleNotifier())
+    dispatcher = NotificationDispatcher(
+        telegram_notifier=None, console_notifier=ConsoleNotifier()
+    )
     job = make_sample_job()
 
     await dispatcher.notify(job)
