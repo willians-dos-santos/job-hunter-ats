@@ -1,7 +1,51 @@
 from datetime import datetime
+import hashlib
 import re
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 from pydantic import BaseModel, Field, field_validator, model_validator
+
+
+def normalize_dedup_text(text: Optional[str]) -> str:
+    """Normalizes text by lowercasing, stripping excessive punctuation, and condensing whitespaces."""
+    if not text:
+        return ""
+    lowered = text.lower()
+    # Replace non-alphanumeric punctuation and underscores with space
+    stripped_punct = re.sub(r"[^\w\s]|_", " ", lowered)
+    # Condense multiple whitespaces and strip ends
+    return re.sub(r"\s+", " ", stripped_punct).strip()
+
+
+def generate_dedup_key(
+    ats: Union[str, "JobOpening"] = "",
+    company: Optional[str] = None,
+    title: Optional[str] = None,
+    location: Optional[str] = None,
+) -> str:
+    """Generates a deterministic 32-char hexadecimal SHA-256 hash for semantic job deduplication."""
+    if isinstance(ats, JobOpening):
+        raw_ats = ats.ats
+        raw_company = ats.company
+        raw_title = ats.title
+        raw_location = ats.location
+    else:
+        raw_ats = str(ats or "")
+        raw_company = str(company or "")
+        raw_title = str(title or "")
+        raw_location = location
+
+    # Treat None, whitespace-only, or "N/A" as empty location
+    if raw_location is None or str(raw_location).strip().upper() == "N/A":
+        norm_location = ""
+    else:
+        norm_location = normalize_dedup_text(str(raw_location))
+
+    norm_ats = normalize_dedup_text(raw_ats)
+    norm_company = normalize_dedup_text(raw_company)
+    norm_title = normalize_dedup_text(raw_title)
+
+    composed = f"{norm_ats}|{norm_company}|{norm_title}|{norm_location or ''}"
+    return hashlib.sha256(composed.encode("utf-8")).hexdigest()[:32]
 
 
 class JobOpening(BaseModel):
@@ -14,6 +58,7 @@ class JobOpening(BaseModel):
     url: str = Field(..., description="Canonical URL to view/apply for the job")
     published_at: Optional[datetime] = Field(default=None, description="Publication timestamp")
     source_job_id: str = Field(default="", description="Platform raw identifier")
+    dedup_key: Optional[str] = Field(default=None, description="Deterministic 32-char hex hash for semantic deduplication")
 
     @model_validator(mode="before")
     @classmethod
@@ -53,6 +98,12 @@ class JobOpening(BaseModel):
             # Fallback to the suffix of job_id if formatted like source:company:id
             parts = self.job_id.split(":")
             self.source_job_id = parts[-1] if len(parts) > 1 else self.job_id
+        return self
+
+    @model_validator(mode="after")
+    def populate_dedup_key(self) -> "JobOpening":
+        if not self.dedup_key:
+            self.dedup_key = generate_dedup_key(self)
         return self
 
 class TargetCompany(BaseModel):

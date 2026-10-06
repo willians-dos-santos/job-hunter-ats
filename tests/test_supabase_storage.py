@@ -71,7 +71,30 @@ async def test_supabase_save_job_success(mock_job):
         assert args[0]["id"] == "gupy:998877"
         assert args[0]["ats"] == "gupy"
         assert args[0]["external_id"] == "998877"
-        assert kwargs.get("on_conflict") == "id"
+        assert args[0]["dedup_key"] == mock_job.dedup_key
+        assert kwargs.get("on_conflict") == "dedup_key"
+        assert kwargs.get("ignore_duplicates") is True
+
+
+@pytest.mark.asyncio
+async def test_supabase_save_job_duplicate_ignored(mock_job):
+    storage = SupabaseStorage(url="https://fake.supabase.co", key="fake-key")
+
+    mock_client = AsyncMock()
+    mock_execute = AsyncMock()
+    mock_execute.data = []  # Empty data represents an ignored duplicate row
+
+    mock_table = MagicMock()
+    mock_table.upsert.return_value.execute = AsyncMock(return_value=mock_execute)
+    mock_client.table.return_value = mock_table
+
+    with patch.object(storage, "get_client", AsyncMock(return_value=mock_client)):
+        success = await storage.save_job(mock_job)
+        assert success is False
+        mock_table.upsert.assert_called_once()
+        _, kwargs = mock_table.upsert.call_args
+        assert kwargs.get("on_conflict") == "dedup_key"
+        assert kwargs.get("ignore_duplicates") is True
 
 
 def test_supabase_storage_missing_credentials_raises_value_error(monkeypatch):

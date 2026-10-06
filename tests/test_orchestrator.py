@@ -2,9 +2,12 @@ import pytest
 import respx
 import yaml
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch, ANY
+
 from src.main import CrawlerOrchestrator, load_config
 from src.models import TargetCompany, JobOpening
 from src.filters import JobFilter
+from src.notifiers import NotificationDispatcher, TelegramNotifier
 from src.storage import SQLiteStorage, SupabaseStorage
 
 
@@ -113,4 +116,119 @@ def test_orchestrator_falls_back_to_sqlite(tmp_path, monkeypatch):
         yaml.dump(config, f)
     orchestrator = CrawlerOrchestrator.from_config_file(str(file_path))
     assert isinstance(orchestrator.storage, SQLiteStorage)
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_skips_telegram_notification_for_dedup_key_duplicate():
+    mock_telegram = AsyncMock(spec=TelegramNotifier)
+    mock_telegram.is_configured = True
+    mock_telegram.notify = AsyncMock(return_value=True)
+
+    dispatcher = NotificationDispatcher(telegram_notifier=mock_telegram)
+
+    mock_storage = AsyncMock()
+    mock_storage.filter_new_jobs = AsyncMock(side_effect=lambda jobs: list(jobs))
+    # First job persists successfully; second job is rejected as semantic duplicate
+    mock_storage.save_job = AsyncMock(side_effect=[True, False])
+
+    job1 = JobOpening(
+        job_id="gupy:1001",
+        source="gupy",
+        company="Acme Corp",
+        title="Software Engineer",
+        location="Remote",
+        url="https://example.com/1",
+    )
+    job2 = JobOpening(
+        job_id="gupy:1002",
+        source="gupy",
+        company="Acme Corp",
+        title="Software Engineer",
+        location="Remote",
+        url="https://example.com/2",
+    )
+    assert job1.dedup_key == job2.dedup_key
+
+    mock_collector = AsyncMock()
+    mock_collector.fetch_jobs.return_value = [job1, job2]
+
+    target = TargetCompany(name="acme", source="gupy")
+    orchestrator = CrawlerOrchestrator(
+        targets=[target],
+        job_filter=JobFilter(),
+        storage=mock_storage,
+        dispatcher=dispatcher,
+    )
+    orchestrator.collectors["gupy"] = mock_collector
+
+    notified = await orchestrator.run()
+
+    # Only job1 is notified; job2 was skipped due to dedup_key collision
+    assert len(notified) == 1
+    assert notified[0].job_id == "gupy:1001"
+    mock_telegram.notify.assert_called_once_with(job1, client=ANY)
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_with_supabase_storage_dedup_skips_telegram():
+    mock_telegram = AsyncMock(spec=TelegramNotifier)
+    mock_telegram.is_configured = True
+    mock_telegram.notify = AsyncMock(return_value=True)
+
+    dispatcher = NotificationDispatcher(telegram_notifier=mock_telegram)
+
+    # SupabaseStorage with mocked Supabase client
+    storage = SupabaseStorage(url="https://fake.supabase.co", key="fake-key")
+
+    mock_client = AsyncMock()
+    mock_execute_first = AsyncMock()
+    mock_execute_first.data = [{"id": "gupy:1001"}]
+    mock_execute_second = AsyncMock()
+    mock_execute_second.data = []  # Conflict on dedup_key ignored
+
+    mock_table = MagicMock()
+    mock_table.upsert.return_value.execute = AsyncMock(
+        side_effect=[mock_execute_first, mock_execute_second]
+    )
+    mock_client.table.return_value = mock_table
+
+    with patch.object(storage, "get_client", AsyncMock(return_value=mock_client)), \
+         patch.object(storage, "is_seen", AsyncMock(return_value=False)):
+
+        job1 = JobOpening(
+            job_id="gupy:1001",
+            source="gupy",
+            company="Acme Corp",
+            title="Software Engineer",
+            location="Remote",
+            url="https://example.com/1",
+        )
+        job2 = JobOpening(
+            job_id="gupy:1002",
+            source="gupy",
+            company="Acme Corp",
+            title="Software Engineer",
+            location="Remote",
+            url="https://example.com/2",
+        )
+        assert job1.dedup_key == job2.dedup_key
+
+        mock_collector = AsyncMock()
+        mock_collector.fetch_jobs.return_value = [job1, job2]
+
+        target = TargetCompany(name="acme", source="gupy")
+        orchestrator = CrawlerOrchestrator(
+            targets=[target],
+            job_filter=JobFilter(),
+            storage=storage,
+            dispatcher=dispatcher,
+        )
+        orchestrator.collectors["gupy"] = mock_collector
+
+        notified = await orchestrator.run()
+
+        assert len(notified) == 1
+        assert notified[0].job_id == "gupy:1001"
+        mock_telegram.notify.assert_called_once_with(job1, client=ANY)
+
 

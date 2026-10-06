@@ -48,3 +48,15 @@ def test_load_config_telegram_prefers_yaml_when_set(tmp_path, monkeypatch):
 def test_load_config_file_not_found():
     with pytest.raises(FileNotFoundError):
         load_config("nonexistent_config_file.yaml")
+
+
+def test_filters_config_schema():
+    from src.config import FiltersConfig
+    default_cfg = FiltersConfig()
+    assert default_cfg.max_days_old == 30
+    assert default_cfg.exclude_inactive is True
+
+    custom_cfg = FiltersConfig(max_days_old=60, exclude_inactive=False)
+    assert custom_cfg.max_days_old == 60
+    assert custom_cfg.exclude_inactive is False
+

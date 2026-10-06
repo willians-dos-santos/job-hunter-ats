@@ -19,6 +19,8 @@ class FiltersConfig(BaseModel):
     title_exclude: List[str] = Field(default_factory=list)
     location_keywords: List[str] = Field(default_factory=list)
     location_exclude: List[str] = Field(default_factory=list)
+    max_days_old: Optional[int] = Field(default=30)
+    exclude_inactive: bool = Field(default=True)
 
 
 class AppConfig(BaseModel):

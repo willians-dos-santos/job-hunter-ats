@@ -8,7 +8,7 @@ from typing import Any, Dict, Iterable, Optional, Union
 
 from supabase import AsyncClient, create_async_client
 
-from src.models import JobOpening
+from src.models import JobOpening, generate_dedup_key
 
 logger = logging.getLogger("job_hunter_ats.storage")
 
@@ -40,10 +40,16 @@ class SQLiteStorage:
                     title TEXT,
                     url TEXT,
                     location TEXT,
-                    first_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    first_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    dedup_key TEXT
                 );
                 """
             )
+            # Ensure dedup_key column exists if table was previously created without it
+            cursor.execute("PRAGMA table_info(seen_jobs);")
+            columns = [col[1] for col in cursor.fetchall()]
+            if "dedup_key" not in columns:
+                cursor.execute("ALTER TABLE seen_jobs ADD COLUMN dedup_key TEXT;")
             conn.commit()
 
     def is_new(self, job_id: str) -> bool:
@@ -53,27 +59,32 @@ class SQLiteStorage:
             cursor.execute("SELECT 1 FROM seen_jobs WHERE job_id = ? LIMIT 1;", (job_id,))
             return cursor.fetchone() is None
 
-    def mark_as_seen(self, job: Union[JobOpening, str]) -> None:
-        """Marks a job (or job_id) as seen idempotently."""
+    def mark_as_seen(self, job: Union[JobOpening, str]) -> bool:
+        """Marks a job (or job_id) as seen idempotently. Returns True if newly inserted, False if duplicate."""
         with self._get_connection() as conn:
             cursor = conn.cursor()
             if isinstance(job, JobOpening):
                 cursor.execute(
                     """
-                    INSERT OR IGNORE INTO seen_jobs (job_id, source, company, title, url, location)
-                    VALUES (?, ?, ?, ?, ?, ?);
+                    INSERT OR IGNORE INTO seen_jobs (job_id, source, company, title, url, location, dedup_key)
+                    VALUES (?, ?, ?, ?, ?, ?, ?);
                     """,
-                    (job.job_id, job.source, job.company, job.title, job.url, job.location),
+                    (job.job_id, job.source, job.company, job.title, job.url, job.location, job.dedup_key),
                 )
             else:
                 cursor.execute(
                     """
-                    INSERT OR IGNORE INTO seen_jobs (job_id, source, company, title, url, location)
-                    VALUES (?, '', '', '', '', '');
+                    INSERT OR IGNORE INTO seen_jobs (job_id, source, company, title, url, location, dedup_key)
+                    VALUES (?, '', '', '', '', '', ?);
                     """,
-                    (str(job),),
+                    (str(job), str(job)),
                 )
             conn.commit()
+            return cursor.rowcount > 0
+
+    def save_job(self, job: JobOpening) -> bool:
+        """Saves a job idempotently. Returns True if inserted, False if duplicate."""
+        return self.mark_as_seen(job)
 
     def filter_new_jobs(self, jobs: Iterable[JobOpening]) -> list[JobOpening]:
         """Filters a collection of jobs, returning only those not yet seen."""
@@ -112,14 +123,17 @@ class SupabaseStorage:
             self._client = await create_async_client(self.url, self.key)
         return self._client
 
-    async def is_seen(self, job_id: str) -> bool:
-        """Checks if a job_id already exists in the Supabase jobs table."""
+    async def is_seen(self, job_id: str, dedup_key: Optional[str] = None) -> bool:
+        """Checks if a job_id or dedup_key already exists in the Supabase jobs table."""
         try:
             client = await self.get_client()
             table = client.table(self.table_name)
             if inspect.isawaitable(table):
                 table = await table
-            res = await table.select("id").eq("id", job_id).execute()
+            if dedup_key:
+                res = await table.select("id").eq("dedup_key", dedup_key).execute()
+            else:
+                res = await table.select("id").eq("id", job_id).execute()
             return bool(res.data)
         except Exception as exc:
             logger.error(
@@ -162,6 +176,10 @@ class SupabaseStorage:
         if location_val in (None, "N/A", ""):
             location_val = None
 
+        dedup_key = getattr(job, "dedup_key", None)
+        if not dedup_key:
+            dedup_key = generate_dedup_key(job)
+
         return {
             "id": normalized_id,
             "ats": ats_str,
@@ -172,18 +190,27 @@ class SupabaseStorage:
             "url": str(job.url),
             "published_at": published_at_str,
             "created_at": datetime.now(timezone.utc).isoformat(),
+            "dedup_key": dedup_key,
         }
 
     async def save_job(self, job: JobOpening) -> bool:
-        """Upserts a job into the Supabase jobs table with conflict handling on 'id'."""
+        """Upserts a job into the Supabase jobs table with conflict handling on 'dedup_key'."""
         try:
             payload = self._build_job_payload(job)
             client = await self.get_client()
             table = client.table(self.table_name)
             if inspect.isawaitable(table):
                 table = await table
-            await table.upsert(payload, on_conflict="id").execute()
-            return True
+            res = await table.upsert(
+                payload,
+                on_conflict="dedup_key",
+                ignore_duplicates=True,
+            ).execute()
+            # If the job was newly inserted, res.data contains the record.
+            # If it was ignored due to conflict on dedup_key, res.data is empty.
+            if res and hasattr(res, "data") and res.data:
+                return True
+            return False
         except Exception as exc:
             logger.error(
                 f"Error saving job '{getattr(job, 'id', None) or getattr(job, 'job_id', '')}' to Supabase: {exc}",
@@ -198,10 +225,16 @@ class SupabaseStorage:
     async def filter_new_jobs(self, jobs: Iterable[JobOpening]) -> list[JobOpening]:
         """Filters a collection of jobs, returning only those not yet seen."""
         new_jobs = []
+        seen_dedup_keys = set()
         for job in jobs:
+            dedup_key = getattr(job, "dedup_key", None)
+            if dedup_key and dedup_key in seen_dedup_keys:
+                continue
             job_id = getattr(job, "id", None) or getattr(job, "job_id", "")
             if not await self.is_seen(job_id):
                 new_jobs.append(job)
+                if dedup_key:
+                    seen_dedup_keys.add(dedup_key)
         return new_jobs
 
     async def mark_as_seen(self, job: Union[JobOpening, str]) -> bool:
@@ -223,14 +256,21 @@ class SupabaseStorage:
             "url": "",
             "published_at": None,
             "created_at": datetime.now(timezone.utc).isoformat(),
+            "dedup_key": generate_dedup_key(ats=ats, company=job_id_str, title=job_id_str, location=""),
         }
         try:
             client = await self.get_client()
             table = client.table(self.table_name)
             if inspect.isawaitable(table):
                 table = await table
-            await table.upsert(payload, on_conflict="id").execute()
-            return True
+            res = await table.upsert(
+                payload,
+                on_conflict="dedup_key",
+                ignore_duplicates=True,
+            ).execute()
+            if res and hasattr(res, "data") and res.data:
+                return True
+            return False
         except Exception as exc:
             logger.error(f"Error marking job_id '{job_id_str}' as seen in Supabase: {exc}", exc_info=True)
             return False

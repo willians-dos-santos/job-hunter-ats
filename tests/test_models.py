@@ -124,3 +124,92 @@ def test_target_company_supports_gupy_global_source_and_query():
     )
     assert job.source == "gupy_global"
 
+
+def test_job_opening_dedup_key_auto_populated():
+    job1 = JobOpening(
+        job_id="gupy:1001",
+        source="gupy",
+        company="Acme Corp",
+        title="Senior Python Engineer",
+        location="Remote",
+        url="https://example.com/1",
+    )
+    job2 = JobOpening(
+        job_id="gupy:1002",
+        source="gupy",
+        company="Acme Corp",
+        title="Senior Python Engineer",
+        location="Remote",
+        url="https://example.com/2",
+    )
+    # Different external/job IDs, but same semantic opening -> same dedup_key
+    assert job1.dedup_key is not None
+    assert len(job1.dedup_key) == 32
+    assert job1.dedup_key == job2.dedup_key
+    # Check that it's a valid hex string
+    int(job1.dedup_key, 16)
+
+
+def test_job_opening_dedup_key_normalizes_spaces_and_punctuation():
+    job_clean = JobOpening(
+        job_id="gupy:1",
+        source="gupy",
+        company="Acme Corp",
+        title="Senior Backend Engineer Python",
+        location="Remote Brazil",
+        url="https://example.com/1",
+    )
+    job_noisy = JobOpening(
+        job_id="gupy:2",
+        source="Gupy",
+        company="  Acme,  Corp.  ",
+        title="Senior   Backend - Engineer! (Python)   ",
+        location="Remote,  Brazil",
+        url="https://example.com/2",
+    )
+    assert job_clean.dedup_key == job_noisy.dedup_key
+
+
+def test_job_opening_dedup_key_location_none_handling():
+    job_none = JobOpening(
+        job_id="gupy:1",
+        source="gupy",
+        company="Acme",
+        title="Dev",
+        location=None,
+        url="https://example.com/1",
+    )
+    job_na = JobOpening(
+        job_id="gupy:2",
+        source="gupy",
+        company="Acme",
+        title="Dev",
+        location="N/A",
+        url="https://example.com/2",
+    )
+    job_blank = JobOpening(
+        job_id="gupy:3",
+        source="gupy",
+        company="Acme",
+        title="Dev",
+        location="   ",
+        url="https://example.com/3",
+    )
+    assert job_none.dedup_key == job_na.dedup_key == job_blank.dedup_key
+
+
+def test_generate_dedup_key_matches_model():
+    from src.models import generate_dedup_key
+    key = generate_dedup_key(ats="gupy", company="Acme", title="Dev", location=None)
+    job = JobOpening(
+        job_id="gupy:1",
+        source="gupy",
+        company="Acme",
+        title="Dev",
+        location=None,
+        url="https://example.com/1",
+    )
+    assert key == job.dedup_key
+    assert len(key) == 32
+
+

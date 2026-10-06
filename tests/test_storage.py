@@ -69,3 +69,19 @@ def test_storage_recreates_schema_if_db_reopened(temp_db):
     storage2 = SQLiteStorage(db_path=str(temp_db))
     assert storage2.is_new("gh:acme:4") is False
     assert storage2.is_new("gh:acme:5") is True
+
+
+def test_storage_persists_dedup_key(temp_db):
+    storage = SQLiteStorage(db_path=str(temp_db))
+    job = make_sample_job("gh:acme:10")
+    assert storage.mark_as_seen(job) is True
+    # Inserting same job again returns False (idempotent / duplicate)
+    assert storage.mark_as_seen(job) is False
+
+    with storage._get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT dedup_key FROM seen_jobs WHERE job_id = ?;", (job.job_id,))
+        row = cursor.fetchone()
+        assert row is not None
+        assert row[0] == job.dedup_key
+

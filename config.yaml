@@ -69,6 +69,12 @@ filters:
     - "US Only"
     - "Onsite"
 
+  # Maximum age of publication in days (if null or <= 0, no cutoff applied)
+  max_days_old: 30
+
+  # Exclude postings with inactive URLs or status
+  exclude_inactive: true
+
 # Notification channels configuration (FR-005, User Story 3)
 telegram:
   # Set to true to enable Telegram alerts (also requires bot_token and chat_id)
