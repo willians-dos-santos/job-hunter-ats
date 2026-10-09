@@ -181,9 +181,9 @@ async def test_orchestrator_with_supabase_storage_dedup_skips_telegram():
     storage = SupabaseStorage(url="https://fake.supabase.co", key="fake-key")
 
     mock_client = AsyncMock()
-    mock_execute_first = AsyncMock()
+    mock_execute_first = MagicMock()
     mock_execute_first.data = [{"id": "gupy:1001"}]
-    mock_execute_second = AsyncMock()
+    mock_execute_second = MagicMock()
     mock_execute_second.data = []  # Conflict on dedup_key ignored
 
     mock_table = MagicMock()

@@ -60,3 +60,36 @@ def test_filters_config_schema():
     assert custom_cfg.max_days_old == 60
     assert custom_cfg.exclude_inactive is False
 
+
+def test_load_config_search_config_user_id_from_env(tmp_path, monkeypatch):
+    monkeypatch.setenv("SEARCH_CONFIG_USER_ID", "user-uuid-env-123")
+    config_file = tmp_path / "config.yaml"
+    with open(config_file, "w", encoding="utf-8") as f:
+        yaml.dump({}, f)
+
+    cfg = load_config(str(config_file))
+    assert cfg["search_config_user_id"] == "user-uuid-env-123"
+    assert cfg["SEARCH_CONFIG_USER_ID"] == "user-uuid-env-123"
+
+
+def test_load_config_search_config_user_id_from_yaml(tmp_path, monkeypatch):
+    monkeypatch.setenv("SEARCH_CONFIG_USER_ID", "user-uuid-env")
+    config_data = {"search_config_user_id": "user-uuid-yaml"}
+    config_file = tmp_path / "config.yaml"
+    with open(config_file, "w", encoding="utf-8") as f:
+        yaml.dump(config_data, f)
+
+    cfg = load_config(str(config_file))
+    assert cfg["search_config_user_id"] == "user-uuid-yaml"
+
+
+def test_app_config_search_config_user_id_schema():
+    from src.config import AppConfig
+    default_cfg = AppConfig()
+    assert default_cfg.search_config_user_id is None
+    assert default_cfg.SEARCH_CONFIG_USER_ID is None
+
+    custom_cfg = AppConfig(search_config_user_id="uuid-custom")
+    assert custom_cfg.search_config_user_id == "uuid-custom"
+
+

@@ -29,3 +29,10 @@ def gupy_jobs_raw() -> dict:
     with open(FIXTURES_DIR / "gupy_jobs.json", "r", encoding="utf-8") as f:
         return json.load(f)
 
+
+@pytest.fixture(autouse=True)
+def clean_search_config_env(monkeypatch):
+    """Ensure SEARCH_CONFIG_USER_ID from local .env does not leak into unit tests unless explicitly set."""
+    monkeypatch.delenv("SEARCH_CONFIG_USER_ID", raising=False)
+
+

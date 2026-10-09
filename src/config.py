@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+SEARCH_CONFIG_USER_ID: Optional[str] = os.getenv("SEARCH_CONFIG_USER_ID")
+
 
 class TelegramConfig(BaseModel):
     enabled: bool = False
@@ -29,10 +31,12 @@ class AppConfig(BaseModel):
     targets: List[Dict[str, Any]] = Field(default_factory=list)
     filters: FiltersConfig = Field(default_factory=FiltersConfig)
     telegram: TelegramConfig = Field(default_factory=TelegramConfig)
+    search_config_user_id: Optional[str] = None
+    SEARCH_CONFIG_USER_ID: Optional[str] = None
 
 
 def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
-    """Loads configuration from a YAML file, ensuring Telegram credentials fallback to env vars."""
+    """Loads configuration from a YAML file, ensuring Telegram credentials and search config user ID fallback to env vars."""
     path = Path(config_path)
     if not path.is_file():
         raise FileNotFoundError(f"Configuration file not found: {config_path}")
@@ -51,5 +55,14 @@ def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
 
     tg_cfg["bot_token"] = bot_token
     tg_cfg["chat_id"] = chat_id
+
+    # Resolve search_config_user_id from env vars if null/empty in YAML
+    user_id = (
+        data.get("search_config_user_id")
+        or data.get("SEARCH_CONFIG_USER_ID")
+        or os.getenv("SEARCH_CONFIG_USER_ID")
+    )
+    data["search_config_user_id"] = user_id
+    data["SEARCH_CONFIG_USER_ID"] = user_id
 
     return data

@@ -1,16 +1,172 @@
 import inspect
+import json
 import logging
 import os
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, Optional, Union
+from typing import Any, Dict, Iterable, List, Optional, Union
 
+from pydantic import BaseModel, Field
 from supabase import AsyncClient, create_async_client
 
-from src.models import JobOpening, generate_dedup_key
+from src.models import JobOpening, TargetCompany, generate_dedup_key
 
 logger = logging.getLogger("job_hunter_ats.storage")
+
+
+class SearchConfigData(BaseModel):
+    """Dynamic search configuration loaded from Supabase `public.search_configs`."""
+    keywords: List[str] = Field(default_factory=list, description="Target job title keywords")
+    excluded_keywords: List[str] = Field(default_factory=list, description="Excluded job title keywords")
+    locations: List[str] = Field(default_factory=list, description="Target location keywords")
+    companies: List[str] = Field(default_factory=list, description="Target company names")
+    ats_filter: Dict[str, Any] = Field(default_factory=dict, description="Global ATS filter options")
+    target_companies: List[TargetCompany] = Field(default_factory=list, description="Target company models")
+
+    @property
+    def is_empty(self) -> bool:
+        return not (
+            self.keywords
+            or self.excluded_keywords
+            or self.locations
+            or self.companies
+            or self.ats_filter
+            or self.target_companies
+        )
+
+    def __bool__(self) -> bool:
+        return not self.is_empty
+
+
+def _parse_metadata(raw_metadata: Any) -> Dict[str, Any]:
+    if isinstance(raw_metadata, dict):
+        return raw_metadata
+    if isinstance(raw_metadata, str):
+        try:
+            parsed = json.loads(raw_metadata)
+            if isinstance(parsed, dict):
+                return parsed
+        except (json.JSONDecodeError, TypeError):
+            pass
+    return {}
+
+
+async def load_search_configs(
+    client: Any,
+    user_id: Optional[str] = None,
+) -> Optional[SearchConfigData]:
+    """Queries dynamic search configurations from Supabase `public.search_configs`.
+
+    Criteria:
+    - Strictly filter by `is_active = True`.
+    - If `user_id` is provided, filter by `user_id = user_id`.
+    - Fields: `category`, `value`, `metadata`.
+
+    Category mapping:
+    - `keyword` -> keywords
+    - `excluded_keyword` -> excluded_keywords
+    - `location` -> locations
+    - `company` -> companies (and target_companies)
+    - `ats_filter` -> global options extracted from metadata (e.g. max_days_old, exclude_inactive)
+
+    Returns:
+    - SearchConfigData if query succeeds and has at least one active rule.
+    - None if empty, error, or no active rules found.
+    """
+    if client is None:
+        return None
+
+    try:
+        table_fn = getattr(client, "table", None) or getattr(client, "from_", None)
+        if not table_fn:
+            return None
+
+        table = table_fn("search_configs")
+        if inspect.isawaitable(table):
+            table = await table
+
+        query = table.select("category, value, metadata").eq("is_active", True)
+        if user_id:
+            query = query.eq("user_id", user_id)
+
+        res = query.execute()
+        if inspect.isawaitable(res):
+            res = await res
+
+        data = getattr(res, "data", None)
+        if data is None and isinstance(res, (list, tuple)):
+            data = res
+        elif data is None and isinstance(res, dict) and "data" in res:
+            data = res["data"]
+
+        if not data or not isinstance(data, list):
+            return None
+
+        keywords: List[str] = []
+        excluded_keywords: List[str] = []
+        locations: List[str] = []
+        companies: List[str] = []
+        ats_filter: Dict[str, Any] = {}
+        target_companies: List[TargetCompany] = []
+
+        for row in data:
+            if not isinstance(row, dict):
+                continue
+            cat = str(row.get("category") or "").strip().lower()
+            val = row.get("value")
+            meta = _parse_metadata(row.get("metadata"))
+            val_str = str(val).strip() if val is not None else ""
+
+            if cat in ("keyword", "keywords"):
+                if val_str:
+                    keywords.append(val_str)
+            elif cat in ("excluded_keyword", "excluded_keywords"):
+                if val_str:
+                    excluded_keywords.append(val_str)
+            elif cat in ("location", "locations"):
+                if val_str:
+                    locations.append(val_str)
+            elif cat in ("company", "companies"):
+                if val_str:
+                    companies.append(val_str)
+                    src = meta.get("source", "greenhouse")
+                    if src not in {"greenhouse", "lever", "Gupy", "gupy", "gupy_global"}:
+                        src = "greenhouse"
+                    target_companies.append(
+                        TargetCompany(
+                            name=val_str,
+                            source=src,
+                            slug=meta.get("slug"),
+                            query=meta.get("query"),
+                        )
+                    )
+            elif cat in ("ats_filter", "ats_filters", "filter", "filters"):
+                if meta:
+                    ats_filter.update(meta)
+                    if val_str and "value" in meta and val_str not in meta:
+                        ats_filter[val_str] = meta["value"]
+                elif val_str:
+                    ats_filter[val_str] = True
+
+        config_data = SearchConfigData(
+            keywords=keywords,
+            excluded_keywords=excluded_keywords,
+            locations=locations,
+            companies=companies,
+            ats_filter=ats_filter,
+            target_companies=target_companies,
+        )
+
+        if config_data.is_empty:
+            return None
+
+        return config_data
+
+    except Exception as exc:
+        logger.warning(f"Error querying search configs from Supabase: {exc}", exc_info=True)
+        return None
+
 
 
 class SQLiteStorage:
@@ -274,4 +430,12 @@ class SupabaseStorage:
         except Exception as exc:
             logger.error(f"Error marking job_id '{job_id_str}' as seen in Supabase: {exc}", exc_info=True)
             return False
+
+    async def load_search_configs(
+        self, user_id: Optional[str] = None
+    ) -> Optional[SearchConfigData]:
+        """Loads search configurations for a specific user_id."""
+        client = await self.get_client()
+        return await load_search_configs(client, user_id=user_id)
+
 

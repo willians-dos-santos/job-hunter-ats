@@ -4,6 +4,7 @@ import logging
 import os
 from typing import Any, Dict, List, Optional, Union
 import httpx
+from supabase import create_async_client
 
 from src.collectors.base import BaseCollector
 from src.collectors.greenhouse import GreenhouseCollector
@@ -13,7 +14,7 @@ from src.config import load_config
 from src.filters import JobFilter
 from src.models import JobOpening, TargetCompany
 from src.notifiers import ConsoleNotifier, NotificationDispatcher, TelegramNotifier
-from src.storage import SQLiteStorage, SupabaseStorage
+from src.storage import SQLiteStorage, SupabaseStorage, SearchConfigData, load_search_configs
 
 logger = logging.getLogger("job_hunter_ats.orchestrator")
 
@@ -28,12 +29,18 @@ class CrawlerOrchestrator:
         storage: Union[SQLiteStorage, SupabaseStorage, Any],
         dispatcher: NotificationDispatcher,
         concurrency_limit: int = 5,
+        user_id: Optional[str] = None,
+        supabase_client: Optional[Any] = None,
     ) -> None:
         self.targets = targets
         self.job_filter = job_filter
         self.storage = storage
         self.dispatcher = dispatcher
         self.concurrency_limit = concurrency_limit
+        self.user_id = user_id
+        self.supabase_client = supabase_client
+        self._initial_targets = [t.model_copy() for t in targets]
+        self._initial_job_filter = job_filter.model_copy(deep=True)
         gupy_collector = GupyCollector()
         self.collectors: Dict[str, BaseCollector] = {
             "greenhouse": GreenhouseCollector(),
@@ -89,13 +96,97 @@ class CrawlerOrchestrator:
 
         concurrency_limit = int(config.get("concurrency_limit", 5))
 
+        user_id = (
+            config.get("search_config_user_id")
+            or config.get("SEARCH_CONFIG_USER_ID")
+            or os.getenv("SEARCH_CONFIG_USER_ID")
+        )
+
         return cls(
             targets=targets,
             job_filter=job_filter,
             storage=storage,
             dispatcher=dispatcher,
             concurrency_limit=concurrency_limit,
+            user_id=user_id,
         )
+
+    async def _get_supabase_client(self) -> Optional[Any]:
+        if self.supabase_client is not None:
+            return self.supabase_client
+        if isinstance(self.storage, SupabaseStorage):
+            return await self.storage.get_client()
+        if hasattr(self.storage, "client") and self.storage.client:
+            return self.storage.client
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_KEY") or os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+        if url and key:
+            try:
+                return await create_async_client(url, key)
+            except Exception:
+                return None
+        return None
+
+    def _restore_initial_configs(self) -> None:
+        self.targets = [t.model_copy() for t in self._initial_targets]
+        self.job_filter = self._initial_job_filter.model_copy(deep=True)
+
+    def _apply_dynamic_configs(self, dynamic_cfg: SearchConfigData) -> None:
+        self._restore_initial_configs()
+
+        if dynamic_cfg.keywords:
+            self.job_filter.title_keywords = list(dynamic_cfg.keywords)
+        if dynamic_cfg.excluded_keywords:
+            self.job_filter.title_exclude = list(dynamic_cfg.excluded_keywords)
+        if dynamic_cfg.locations:
+            self.job_filter.location_keywords = list(dynamic_cfg.locations)
+
+        if "max_days_old" in dynamic_cfg.ats_filter:
+            try:
+                self.job_filter.max_days_old = int(dynamic_cfg.ats_filter["max_days_old"])
+            except (ValueError, TypeError):
+                pass
+        if "exclude_inactive" in dynamic_cfg.ats_filter:
+            val = dynamic_cfg.ats_filter["exclude_inactive"]
+            if isinstance(val, str):
+                self.job_filter.exclude_inactive = val.lower() in ("true", "1", "yes")
+            else:
+                self.job_filter.exclude_inactive = bool(val)
+        if "location_exclude" in dynamic_cfg.ats_filter:
+            self.job_filter.location_exclude = list(dynamic_cfg.ats_filter["location_exclude"])
+
+        if dynamic_cfg.target_companies:
+            self.targets = list(dynamic_cfg.target_companies)
+        elif dynamic_cfg.companies:
+            self.targets = [TargetCompany(name=c, source="greenhouse") for c in dynamic_cfg.companies]
+
+    async def _sync_search_configs(self, user_id: Optional[str] = None) -> None:
+        effective_user_id = user_id if user_id is not None else (self.user_id or os.getenv("SEARCH_CONFIG_USER_ID"))
+        if not effective_user_id:
+            logger.warning("Using local config.yaml fallback for search configurations")
+            self._restore_initial_configs()
+            return
+
+        try:
+            client = await self._get_supabase_client()
+            if client is None:
+                logger.warning("Using local config.yaml fallback for search configurations")
+                self._restore_initial_configs()
+                return
+
+            dynamic_cfg = await load_search_configs(client, user_id=effective_user_id)
+            if dynamic_cfg and not dynamic_cfg.is_empty:
+                self._apply_dynamic_configs(dynamic_cfg)
+                logger.info(f"Loaded dynamic search configurations from Supabase for user {effective_user_id}")
+            else:
+                logger.warning("Using local config.yaml fallback for search configurations")
+                self._restore_initial_configs()
+        except Exception as exc:
+            logger.warning(
+                f"Failed to query dynamic search configurations ({exc}). Using local config.yaml fallback."
+            )
+            logger.warning("Using local config.yaml fallback for search configurations")
+            self._restore_initial_configs()
 
     async def _crawl_target(
         self,
@@ -121,10 +212,12 @@ class CrawlerOrchestrator:
                 )
                 return []
 
-    async def run(self) -> List[JobOpening]:
+    async def run(self, user_id: Optional[str] = None) -> List[JobOpening]:
         """Runs a complete crawl, filter, persistence and notification cycle."""
+        await self._sync_search_configs(user_id=user_id)
         semaphore = asyncio.Semaphore(self.concurrency_limit)
         notified_jobs: List[JobOpening] = []
+
 
         limits = httpx.Limits(max_keepalive_connections=10, max_connections=self.concurrency_limit * 2)
         async with httpx.AsyncClient(limits=limits, timeout=15.0) as client:

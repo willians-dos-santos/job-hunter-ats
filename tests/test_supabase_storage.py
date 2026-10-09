@@ -23,7 +23,7 @@ async def test_supabase_is_seen_true():
     
     # Mock da cadeia: client.table("jobs").select("id").eq("id", job_id).execute()
     mock_client = AsyncMock()
-    mock_execute = AsyncMock()
+    mock_execute = MagicMock()
     mock_execute.data = [{"id": "gupy:998877"}]
     
     mock_table = MagicMock()
@@ -40,7 +40,7 @@ async def test_supabase_is_seen_false():
     storage = SupabaseStorage(url="https://fake.supabase.co", key="fake-key")
     
     mock_client = AsyncMock()
-    mock_execute = AsyncMock()
+    mock_execute = MagicMock()
     mock_execute.data = []
     
     mock_table = MagicMock()
@@ -56,7 +56,7 @@ async def test_supabase_save_job_success(mock_job):
     storage = SupabaseStorage(url="https://fake.supabase.co", key="fake-key")
     
     mock_client = AsyncMock()
-    mock_execute = AsyncMock()
+    mock_execute = MagicMock()
     mock_execute.data = [{"id": "gupy:998877"}]
     
     mock_table = MagicMock()
@@ -81,7 +81,7 @@ async def test_supabase_save_job_duplicate_ignored(mock_job):
     storage = SupabaseStorage(url="https://fake.supabase.co", key="fake-key")
 
     mock_client = AsyncMock()
-    mock_execute = AsyncMock()
+    mock_execute = MagicMock()
     mock_execute.data = []  # Empty data represents an ignored duplicate row
 
     mock_table = MagicMock()
@@ -165,7 +165,7 @@ async def test_supabase_save_job_date_serialization_and_null_location():
     )
 
     mock_client = AsyncMock()
-    mock_execute = AsyncMock()
+    mock_execute = MagicMock()
     mock_table = MagicMock()
     mock_table.upsert.return_value.execute = AsyncMock(return_value=mock_execute)
     mock_client.table.return_value = mock_table
