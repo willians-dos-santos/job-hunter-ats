@@ -1,12 +1,11 @@
-import pytest
-import respx
-import yaml
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch, ANY
+from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
-from src.main import CrawlerOrchestrator, load_config
-from src.models import TargetCompany, JobOpening
+import pytest
+import yaml
+
 from src.filters import JobFilter
+from src.main import CrawlerOrchestrator, load_config
+from src.models import JobOpening, TargetCompany
 from src.notifiers import NotificationDispatcher, TelegramNotifier
 from src.storage import SQLiteStorage, SupabaseStorage
 
@@ -55,20 +54,14 @@ async def test_orchestrator_run_end_to_end(
         status_code=200, json=greenhouse_jobs_raw
     )
     # Mock Lever endpoint for techcorp
-    respx_mock.get("https://api.lever.co/v0/postings/techcorp?mode=json").respond(
-        status_code=200, json=lever_jobs_raw
-    )
+    respx_mock.get("https://api.lever.co/v0/postings/techcorp?mode=json").respond(status_code=200, json=lever_jobs_raw)
     # Mock Gupy endpoint for ambev
-    respx_mock.get("https://portal.gupy.io/api/job-search/jobs").respond(
-        status_code=200, json=gupy_jobs_raw
-    )
+    respx_mock.get("https://portal.gupy.io/api/job-search/jobs").respond(status_code=200, json=gupy_jobs_raw)
     # Mock Greenhouse endpoint for badcompany (returns 404 - fault isolation test)
-    respx_mock.get("https://boards-api.greenhouse.io/v1/boards/badcompany/jobs").respond(
-        status_code=404
-    )
+    respx_mock.get("https://boards-api.greenhouse.io/v1/boards/badcompany/jobs").respond(status_code=404)
 
     orchestrator = CrawlerOrchestrator.from_config_file(str(sample_config_file))
-    
+
     # First crawl run
     notified_jobs = await orchestrator.run()
 
@@ -187,14 +180,13 @@ async def test_orchestrator_with_supabase_storage_dedup_skips_telegram():
     mock_execute_second.data = []  # Conflict on dedup_key ignored
 
     mock_table = MagicMock()
-    mock_table.upsert.return_value.execute = AsyncMock(
-        side_effect=[mock_execute_first, mock_execute_second]
-    )
+    mock_table.upsert.return_value.execute = AsyncMock(side_effect=[mock_execute_first, mock_execute_second])
     mock_client.table.return_value = mock_table
 
-    with patch.object(storage, "get_client", AsyncMock(return_value=mock_client)), \
-         patch.object(storage, "is_seen", AsyncMock(return_value=False)):
-
+    with (
+        patch.object(storage, "get_client", AsyncMock(return_value=mock_client)),
+        patch.object(storage, "is_seen", AsyncMock(return_value=False)),
+    ):
         job1 = JobOpening(
             job_id="gupy:1001",
             source="gupy",
@@ -232,3 +224,134 @@ async def test_orchestrator_with_supabase_storage_dedup_skips_telegram():
         mock_telegram.notify.assert_called_once_with(job1, client=ANY)
 
 
+@pytest.mark.asyncio
+async def test_orchestrator_logs_active_ats_platforms(caplog):
+    """Validates logging of active ATS platforms for the current run."""
+    import logging
+
+    caplog.set_level(logging.INFO)
+
+    targets = [
+        TargetCompany(name="Vagas Python", source="gupy_global", query="Python"),
+        TargetCompany(name="Solides Tech", source="solides", query="Backend"),
+    ]
+    orchestrator = CrawlerOrchestrator(
+        targets=targets,
+        job_filter=JobFilter(),
+        storage=AsyncMock(),
+        dispatcher=NotificationDispatcher(),
+    )
+
+    with patch.object(orchestrator, "_crawl_target", AsyncMock(return_value=[])):
+        await orchestrator.run()
+
+    info_logs = [r.message for r in caplog.records if r.levelno == logging.INFO]
+    expected_ats_log = "Active ATS platforms for this run: ['gupy', 'solides']"
+    assert any(expected_ats_log in msg for msg in info_logs)
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_logs_keyword_traceability(caplog):
+    """Validates start and finish logging with keyword and total/matching summary even with 0 jobs."""
+    import logging
+
+    caplog.set_level(logging.INFO)
+
+    target_solides = TargetCompany(name="Solides Python", source="solides", query="Python")
+    job_filter = JobFilter(
+        title_keywords=["Python"],
+        max_days_old=30,
+    )
+
+    collector = AsyncMock()
+    # 0 jobs returned to test zero-vacancy observability
+    collector.fetch_jobs.return_value = []
+
+    storage = AsyncMock()
+    storage.filter_new_jobs = AsyncMock(return_value=[])
+
+    orchestrator = CrawlerOrchestrator(
+        targets=[target_solides],
+        job_filter=job_filter,
+        storage=storage,
+        dispatcher=NotificationDispatcher(),
+    )
+    orchestrator.collectors["solides"] = collector
+
+    await orchestrator.run()
+
+    info_logs = [r.message for r in caplog.records if r.levelno == logging.INFO]
+
+    # Verify start log includes platform, keyword and cutoff
+    start_logs = [m for m in info_logs if "[solides] Starting crawl for keyword: 'Python'" in m]
+    assert len(start_logs) == 1
+    assert "cutoff:" in start_logs[0]
+
+    # Verify finish log includes total fetched 0 and matching 0
+    expected_finish = "[solides] Finished 'Python'. Total fetched: 0 | Matching filters/cutoff: 0."
+    assert any(expected_finish in m for m in info_logs)
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_logs_solides_rejection_reason(caplog):
+    """Validates that rejected Solides jobs log detailed rejection reasons at INFO level."""
+    import logging
+    from datetime import datetime, timedelta, timezone
+
+    caplog.set_level(logging.INFO)
+
+    target_solides = TargetCompany(name="Solides Backend", source="solides", query="Backend")
+    job_filter = JobFilter(
+        title_keywords=["Backend"],
+        location_keywords=["Remoto"],
+        max_days_old=30,
+    )
+
+    old_date = datetime.now(timezone.utc) - timedelta(days=60)
+    job_rejected_cutoff = JobOpening(
+        job_id="solides_101",
+        source="solides",
+        source_job_id="101",
+        company="Acme",
+        title="Backend Engineer",
+        location="Remoto",
+        url="https://vagas.solides.com.br/vaga/101",
+        published_at=old_date,
+    )
+    job_rejected_location = JobOpening(
+        job_id="solides_102",
+        source="solides",
+        source_job_id="102",
+        company="Acme",
+        title="Backend Engineer",
+        location="Salvador - BA",
+        url="https://vagas.solides.com.br/vaga/102",
+        published_at=datetime.now(timezone.utc),
+        modality="on_site",
+    )
+
+    collector = AsyncMock()
+    collector.fetch_jobs.return_value = [job_rejected_cutoff, job_rejected_location]
+
+    storage = AsyncMock()
+    storage.filter_new_jobs = AsyncMock(return_value=[])
+
+    orchestrator = CrawlerOrchestrator(
+        targets=[target_solides],
+        job_filter=job_filter,
+        storage=storage,
+        dispatcher=NotificationDispatcher(),
+    )
+    orchestrator.collectors["solides"] = collector
+
+    await orchestrator.run()
+
+    info_logs = [r.message for r in caplog.records if r.levelno == logging.INFO]
+
+    # Verify cutoff rejection log
+    cutoff_logs = [m for m in info_logs if "[solides] Job '101' rejected: cutoff date" in m]
+    assert len(cutoff_logs) == 1
+
+    # Verify location rejection log
+    loc_logs = [m for m in info_logs if "[solides] Job '102' rejected: rejected by location:" in m]
+    assert len(loc_logs) == 1

@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+
 import pytest
 from pydantic import ValidationError
 
@@ -200,6 +201,7 @@ def test_job_opening_dedup_key_location_none_handling():
 
 def test_generate_dedup_key_matches_model():
     from src.models import generate_dedup_key
+
     key = generate_dedup_key(ats="gupy", company="Acme", title="Dev", location=None)
     job = JobOpening(
         job_id="gupy:1",
@@ -211,5 +213,3 @@ def test_generate_dedup_key_matches_model():
     )
     assert key == job.dedup_key
     assert len(key) == 32
-
-

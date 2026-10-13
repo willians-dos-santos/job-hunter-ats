@@ -1,7 +1,7 @@
-from datetime import datetime
 import logging
+from datetime import datetime
 from typing import Any, Dict, List, Optional
-import httpx
+
 from src.collectors.base import BaseCollector
 from src.models import JobOpening, TargetCompany
 

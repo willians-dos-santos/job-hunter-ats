@@ -1,0 +1,67 @@
+{
+  "totalPages": 2,
+  "currentPage": 1,
+  "count": 4,
+  "data": [
+    {
+      "id": 936455,
+      "title": "Desenvolvedor Backend Python",
+      "description": "<p>Vaga para atuar com Python e FastAPI.</p>",
+      "companyName": "Tech Corp",
+      "jobType": "presencial",
+      "homeOffice": false,
+      "city": {
+        "id": 3830,
+        "name": "São Paulo",
+        "stateId": 20
+      },
+      "state": {
+        "id": 20,
+        "name": "São Paulo",
+        "code": "SP"
+      },
+      "createdAt": "2026-10-12"
+    },
+    {
+      "id": "936108",
+      "title": "Engenheiro de Software Python Sênior",
+      "description": "<p>Trabalho 100% remoto com microserviços.</p>",
+      "companyName": "Inova Brasil",
+      "jobType": "remoto",
+      "homeOffice": false,
+      "city": null,
+      "state": null,
+      "createdAt": "2026-10-11T14:30:00Z"
+    },
+    {
+      "id": 935687,
+      "title": "Desenvolvedor Fullstack Python/React",
+      "description": "<p>Atuação híbrida 2x por semana.</p>",
+      "companyName": "Mendes Advogados",
+      "jobType": "hibrido",
+      "homeOffice": false,
+      "city": {
+        "id": 1164,
+        "name": "Natal",
+        "stateId": 11
+      },
+      "state": {
+        "id": 11,
+        "name": "Rio Grande do Norte",
+        "code": "RN"
+      },
+      "createdAt": "2026-10-10"
+    },
+    {
+      "id": "sol-abc-42",
+      "title": "Arquiteto de Soluções Cloud",
+      "description": "<p>Vaga home office total.</p>",
+      "companyName": null,
+      "jobType": "outro",
+      "homeOffice": true,
+      "city": null,
+      "state": null,
+      "createdAt": null
+    }
+  ]
+}

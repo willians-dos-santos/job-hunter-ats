@@ -1,8 +1,11 @@
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
 from src.models import JobOpening
 from src.storage import SupabaseStorage  # ou de onde for exportado
+
 
 @pytest.fixture
 def mock_job():
@@ -17,15 +20,16 @@ def mock_job():
         published_at=datetime(2026, 10, 5, 12, 0, tzinfo=timezone.utc),
     )
 
+
 @pytest.mark.asyncio
 async def test_supabase_is_seen_true():
     storage = SupabaseStorage(url="https://fake.supabase.co", key="fake-key")
-    
+
     # Mock da cadeia: client.table("jobs").select("id").eq("id", job_id).execute()
     mock_client = AsyncMock()
     mock_execute = MagicMock()
     mock_execute.data = [{"id": "gupy:998877"}]
-    
+
     mock_table = MagicMock()
     mock_table.select.return_value.eq.return_value.execute = AsyncMock(return_value=mock_execute)
     mock_client.table.return_value = mock_table
@@ -35,14 +39,15 @@ async def test_supabase_is_seen_true():
         assert seen is True
         mock_client.table.assert_called_with("jobs")
 
+
 @pytest.mark.asyncio
 async def test_supabase_is_seen_false():
     storage = SupabaseStorage(url="https://fake.supabase.co", key="fake-key")
-    
+
     mock_client = AsyncMock()
     mock_execute = MagicMock()
     mock_execute.data = []
-    
+
     mock_table = MagicMock()
     mock_table.select.return_value.eq.return_value.execute = AsyncMock(return_value=mock_execute)
     mock_client.table.return_value = mock_table
@@ -51,14 +56,15 @@ async def test_supabase_is_seen_false():
         seen = await storage.is_seen("gupy:111111")
         assert seen is False
 
+
 @pytest.mark.asyncio
 async def test_supabase_save_job_success(mock_job):
     storage = SupabaseStorage(url="https://fake.supabase.co", key="fake-key")
-    
+
     mock_client = AsyncMock()
     mock_execute = MagicMock()
     mock_execute.data = [{"id": "gupy:998877"}]
-    
+
     mock_table = MagicMock()
     mock_table.upsert.return_value.execute = AsyncMock(return_value=mock_execute)
     mock_client.table.return_value = mock_table
@@ -141,9 +147,7 @@ async def test_supabase_is_seen_error_returns_false():
 
     mock_client = AsyncMock()
     mock_table = MagicMock()
-    mock_table.select.return_value.eq.return_value.execute = AsyncMock(
-        side_effect=Exception("Connection timed out")
-    )
+    mock_table.select.return_value.eq.return_value.execute = AsyncMock(side_effect=Exception("Connection timed out"))
     mock_client.table.return_value = mock_table
 
     with patch.object(storage, "get_client", AsyncMock(return_value=mock_client)):
@@ -214,4 +218,4 @@ async def test_supabase_get_client_initializes_once():
         c2 = await storage.get_client()
         assert c1 is mock_client_instance
         assert c2 is mock_client_instance
-        mock_create.assert_called_once_with("https://fake.supabase.co", "fake-key")
+        mock_create.assert_called_once_with("https://fake.supabase.co", "fake-key")

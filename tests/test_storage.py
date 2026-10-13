@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
+
 import pytest
+
 from src.models import JobOpening
 from src.storage import SQLiteStorage
 
@@ -84,4 +86,3 @@ def test_storage_persists_dedup_key(temp_db):
         row = cursor.fetchone()
         assert row is not None
         assert row[0] == job.dedup_key
-

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
-import pytest
+
 from src.filters import JobFilter
 from src.models import JobOpening
 
@@ -170,3 +170,71 @@ def test_filter_temporal_disabled_with_zero_or_none():
 
     criteria_none = JobFilter(max_days_old=None)
     assert criteria_none.matches(old_job) is True
+
+
+def test_filter_get_rejection_reason_diagnostics():
+    """Validates descriptive rejection reasons returned by get_rejection_reason."""
+    jf = JobFilter(
+        title_keywords=["Backend", "Python"],
+        title_exclude=["Estágio"],
+        location_keywords=["Remoto"],
+        location_exclude=["US Only"],
+        max_days_old=30,
+        exclude_inactive=True,
+    )
+
+    # 1. Matching job -> None
+    good_job = make_job("Senior Backend Engineer", "Remoto", published_at=datetime.now(timezone.utc))
+    assert jf.get_rejection_reason(good_job) is None
+
+    # 2. Inactive URL
+    inactive_job = make_job("Backend Engineer", "Remoto", url="https://inactive.gupy.io/vaga")
+    reason = jf.get_rejection_reason(inactive_job)
+    assert reason is not None
+    assert "inactive URL" in reason
+
+    # 3. Cutoff date
+    old_job = make_job("Backend Engineer", "Remoto", published_at=datetime.now(timezone.utc) - timedelta(days=45))
+    reason = jf.get_rejection_reason(old_job)
+    assert reason is not None
+    assert "cutoff date" in reason
+    assert "<" in reason
+
+    # 4. Excluded title keyword
+    excluded_kw_job = make_job("Estágio em Backend", "Remoto", published_at=datetime.now(timezone.utc))
+    reason = jf.get_rejection_reason(excluded_kw_job)
+    assert reason is not None
+    assert "rejected by excluded_keyword" in reason
+    assert "Estágio" in reason
+
+    # 5. Missing title keyword
+    no_title_job = make_job("Frontend React", "Remoto", published_at=datetime.now(timezone.utc))
+    reason = jf.get_rejection_reason(no_title_job)
+    assert reason is not None
+    assert "rejected by title" in reason
+
+    # 6. Excluded location
+    bad_loc_job = make_job("Backend Engineer", "Remoto - US Only", published_at=datetime.now(timezone.utc))
+    reason = jf.get_rejection_reason(bad_loc_job)
+    assert reason is not None
+    assert "rejected by excluded_location" in reason
+
+    # 7. Non-matching location
+    onsite_job = make_job("Backend Engineer", "São Paulo - SP", published_at=datetime.now(timezone.utc))
+    reason = jf.get_rejection_reason(onsite_job)
+    assert reason is not None
+    assert "rejected by location" in reason
+
+    # 8. Modality remote matching even if location string does not contain 'remoto'
+    remote_modality_job = JobOpening(
+        job_id="test:modality",
+        source="solides",
+        company="Acme",
+        title="Backend Engineer",
+        location="Belo Horizonte - MG",
+        url="https://example.com",
+        published_at=datetime.now(timezone.utc),
+        modality="remote",
+    )
+    assert jf.get_rejection_reason(remote_modality_job) is None
+    assert jf.matches(remote_modality_job) is True

@@ -20,9 +20,19 @@ dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
     "respx>=0.21.1",
+    "ruff>=0.8.0",
 ]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
 pythonpath = ["src", "."]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = [".specify"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]

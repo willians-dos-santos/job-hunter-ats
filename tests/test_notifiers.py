@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
+
 import httpx
 import pytest
-import respx
+
 from src.models import JobOpening
 from src.notifiers import ConsoleNotifier, NotificationDispatcher, TelegramNotifier
 
@@ -38,13 +39,9 @@ async def test_telegram_notifier_sends_markdown_message(respx_mock):
 
     notifier = TelegramNotifier(bot_token=bot_token, chat_id=chat_id)
     # Testa com data de publicação preenchida
-    job = make_sample_job(
-        published_at=datetime(2026, 10, 6, 14, 30, tzinfo=timezone.utc)
-    )
+    job = make_sample_job(published_at=datetime(2026, 10, 6, 14, 30, tzinfo=timezone.utc))
 
-    route = respx_mock.post(
-        f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    ).respond(
+    route = respx_mock.post(f"https://api.telegram.org/bot{bot_token}/sendMessage").respond(
         status_code=200,
         json={"ok": True, "result": {}},
     )
@@ -71,9 +68,7 @@ async def test_telegram_notifier_handles_none_published_at(respx_mock):
     notifier = TelegramNotifier(bot_token=bot_token, chat_id=chat_id)
     job = make_sample_job(published_at=None)
 
-    route = respx_mock.post(
-        f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    ).respond(
+    route = respx_mock.post(f"https://api.telegram.org/bot{bot_token}/sendMessage").respond(
         status_code=200,
         json={"ok": True, "result": {}},
     )
@@ -94,9 +89,7 @@ async def test_telegram_notifier_error_does_not_crash(respx_mock):
     notifier = TelegramNotifier(bot_token=bot_token, chat_id=chat_id)
     job = make_sample_job()
 
-    respx_mock.post(
-        f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    ).respond(
+    respx_mock.post(f"https://api.telegram.org/bot{bot_token}/sendMessage").respond(
         status_code=400,
         json={"ok": False, "description": "Bad Request: chat not found"},
     )
@@ -109,9 +102,7 @@ async def test_telegram_notifier_error_does_not_crash(respx_mock):
 
 @pytest.mark.asyncio
 async def test_dispatcher_fallback_to_console_when_no_telegram(capsys):
-    dispatcher = NotificationDispatcher(
-        telegram_notifier=None, console_notifier=ConsoleNotifier()
-    )
+    dispatcher = NotificationDispatcher(telegram_notifier=None, console_notifier=ConsoleNotifier())
     job = make_sample_job()
 
     await dispatcher.notify(job)

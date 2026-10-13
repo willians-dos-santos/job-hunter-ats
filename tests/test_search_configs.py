@@ -1,17 +1,17 @@
 import logging
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import httpx
+import pytest
 
 from src.filters import JobFilter
-from src.models import TargetCompany, JobOpening
+from src.models import TargetCompany
 from src.notifiers import NotificationDispatcher
 from src.orchestrator import CrawlerOrchestrator
 from src.storage import (
     SearchConfigData,
-    load_search_configs,
     SupabaseStorage,
-    SQLiteStorage,
+    load_search_configs,
 )
 
 
@@ -39,6 +39,7 @@ def build_mock_supabase_client(data=None, exception=None):
 # ---------------------------------------------------------------------------
 # 1. Mapeamento de Categorias e Extração de Metadata
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_load_search_configs_mapping_all_categories():
@@ -140,6 +141,7 @@ async def test_load_search_configs_handles_json_string_metadata():
 # 2. Critérios da Consulta Supabase (is_active, user_id, colunas)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_load_search_configs_query_criteria_with_user_id():
     client, mock_table, mock_query = build_mock_supabase_client(
@@ -171,6 +173,7 @@ async def test_load_search_configs_query_criteria_without_user_id():
 # ---------------------------------------------------------------------------
 # 3. Fallback por Lista Vazia
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_load_search_configs_empty_returns_none():
@@ -227,11 +230,10 @@ async def test_orchestrator_fallback_on_empty_list(caplog):
 # 4. Fallback por Falha/Exceção de Rede
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_load_search_configs_network_exception_returns_none():
-    client, _, _ = build_mock_supabase_client(
-        exception=httpx.ConnectError("Connection refused by host")
-    )
+    client, _, _ = build_mock_supabase_client(exception=httpx.ConnectError("Connection refused by host"))
     result = await load_search_configs(client, user_id="user-net-err")
     assert result is None
 
@@ -240,9 +242,7 @@ async def test_load_search_configs_network_exception_returns_none():
 async def test_orchestrator_fallback_on_network_exception(caplog):
     caplog.set_level(logging.WARNING)
 
-    client, _, _ = build_mock_supabase_client(
-        exception=httpx.ConnectTimeout("Request timed out")
-    )
+    client, _, _ = build_mock_supabase_client(exception=httpx.ConnectTimeout("Request timed out"))
 
     initial_target = TargetCompany(name="net-fallback", source="lever")
     initial_filter = JobFilter(title_keywords=["DefaultKeyword"])
@@ -277,6 +277,7 @@ async def test_orchestrator_fallback_on_network_exception(caplog):
 # 5. Fallback quando SEARCH_CONFIG_USER_ID não configurado
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_orchestrator_fallback_when_user_id_not_configured(caplog, monkeypatch):
     caplog.set_level(logging.WARNING)
@@ -308,6 +309,7 @@ async def test_orchestrator_fallback_when_user_id_not_configured(caplog, monkeyp
 # ---------------------------------------------------------------------------
 # 6. Sucesso no Supabase
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_orchestrator_dynamic_config_success(caplog):
@@ -379,14 +381,88 @@ async def test_orchestrator_dynamic_config_success(caplog):
 # 7. SupabaseStorage helper method
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_supabase_storage_load_search_configs_delegates():
     storage = SupabaseStorage(url="https://mock.supabase.co", key="mock-key")
-    client, _, _ = build_mock_supabase_client(
-        data=[{"category": "keyword", "value": "Python", "metadata": {}}]
-    )
+    client, _, _ = build_mock_supabase_client(data=[{"category": "keyword", "value": "Python", "metadata": {}}])
 
     with patch.object(storage, "get_client", AsyncMock(return_value=client)):
         res = await storage.load_search_configs(user_id="user-sub")
         assert res is not None
         assert res.keywords == ["Python"]
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_dynamic_config_generates_targets_for_solides_and_gupy(caplog):
+    """Validates that active ats_filter records for solides and gupy generate keyword discovery targets."""
+    caplog.set_level(logging.INFO)
+    user_uuid = "solides-gupy-user"
+
+    remote_records = [
+        {"category": "keyword", "value": "Python", "metadata": {}},
+        {"category": "keyword", "value": "Backend", "metadata": {}},
+        {"category": "ats_filter", "value": "solides", "metadata": {}},
+        {"category": "ats_filter", "value": "gupy", "metadata": {}},
+    ]
+
+    client, _, _ = build_mock_supabase_client(data=remote_records)
+
+    orchestrator = CrawlerOrchestrator(
+        targets=[],
+        job_filter=JobFilter(),
+        storage=MagicMock(),
+        dispatcher=NotificationDispatcher(),
+        user_id=user_uuid,
+        supabase_client=client,
+    )
+
+    with patch.object(orchestrator, "_crawl_target", AsyncMock(return_value=[])):
+        await orchestrator.run()
+
+    # Verify generated targets for each keyword across both platforms
+    assert len(orchestrator.targets) == 4
+    target_pairs = [(t.query, t.source) for t in orchestrator.targets]
+    assert ("Python", "gupy_global") in target_pairs
+    assert ("Python", "solides") in target_pairs
+    assert ("Backend", "gupy_global") in target_pairs
+    assert ("Backend", "solides") in target_pairs
+
+    # Verify active ATS platforms log
+    info_logs = [r.message for r in caplog.records if r.levelno == logging.INFO]
+    expected_log = "Active ATS platforms for this run: ['gupy', 'solides']"
+    assert any(expected_log in msg for msg in info_logs)
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_dynamic_config_generates_targets_for_solides_only(caplog):
+    """Validates that having only solides in ats_filter generates targets exclusively for Solides."""
+    caplog.set_level(logging.INFO)
+    user_uuid = "solides-only-user"
+
+    remote_records = [
+        {"category": "keyword", "value": "Rust", "metadata": {}},
+        {"category": "ats_filter", "value": "solides", "metadata": {}},
+    ]
+
+    client, _, _ = build_mock_supabase_client(data=remote_records)
+
+    orchestrator = CrawlerOrchestrator(
+        targets=[],
+        job_filter=JobFilter(),
+        storage=MagicMock(),
+        dispatcher=NotificationDispatcher(),
+        user_id=user_uuid,
+        supabase_client=client,
+    )
+
+    with patch.object(orchestrator, "_crawl_target", AsyncMock(return_value=[])):
+        await orchestrator.run()
+
+    assert len(orchestrator.targets) == 1
+    assert orchestrator.targets[0].query == "Rust"
+    assert orchestrator.targets[0].source == "solides"
+
+    info_logs = [r.message for r in caplog.records if r.levelno == logging.INFO]
+    expected_log = "Active ATS platforms for this run: ['solides']"
+    assert any(expected_log in msg for msg in info_logs)

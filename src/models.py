@@ -1,7 +1,8 @@
-from datetime import datetime
 import hashlib
 import re
+from datetime import datetime
 from typing import Literal, Optional, Union
+
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
@@ -50,15 +51,21 @@ def generate_dedup_key(
 
 class JobOpening(BaseModel):
     """Normalized canonical model for a job opening."""
+
     job_id: str = Field(..., description="Canonical globally unique ID, e.g. 'greenhouse:acme:12345'")
-    source: Literal["greenhouse", "lever", "Gupy", "gupy", "gupy_global"] = Field(..., description="Source ATS platform")
+    source: Literal["greenhouse", "lever", "Gupy", "gupy", "gupy_global", "solides"] = Field(
+        ..., description="Source ATS platform"
+    )
     company: str = Field(..., description="Company name or slug")
     title: str = Field(..., description="Job opening title")
     location: str = Field(default="N/A", description="Job location or 'N/A' if unspecified")
     url: str = Field(..., description="Canonical URL to view/apply for the job")
     published_at: Optional[datetime] = Field(default=None, description="Publication timestamp")
     source_job_id: str = Field(default="", description="Platform raw identifier")
-    dedup_key: Optional[str] = Field(default=None, description="Deterministic 32-char hex hash for semantic deduplication")
+    dedup_key: Optional[str] = Field(
+        default=None, description="Deterministic 32-char hex hash for semantic deduplication"
+    )
+    modality: Optional[str] = Field(default=None, description="Work modality (remote, hybrid, on_site)")
 
     @model_validator(mode="before")
     @classmethod
@@ -106,10 +113,14 @@ class JobOpening(BaseModel):
             self.dedup_key = generate_dedup_key(self)
         return self
 
+
 class TargetCompany(BaseModel):
     """Target company ATS configuration."""
+
     name: str = Field(..., description="Company name or slug")
-    source: Literal["greenhouse", "lever", "Gupy", "gupy", "gupy_global"] = Field(..., description="Target ATS platform")
+    source: Literal["greenhouse", "lever", "Gupy", "gupy", "gupy_global", "solides"] = Field(
+        ..., description="Target ATS platform"
+    )
     slug: Optional[str] = Field(default=None, description="Explicit slug identifier")
     query: Optional[str] = Field(default=None, description="Search term for global discovery")
 
@@ -134,4 +145,3 @@ class TargetCompany(BaseModel):
         raw = (self.slug or self.name).strip().lower()
         cleaned = re.sub(r"[^a-z0-9-]", "", raw.replace(" ", "-").replace("_", "-"))
         return re.sub(r"-+", "-", cleaned).strip("-")
-

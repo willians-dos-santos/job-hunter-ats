@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Any, List, Optional
+
 from src.collectors.base import BaseCollector
 from src.models import JobOpening, TargetCompany
 

@@ -2,7 +2,9 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from typing import Any, List, Optional
+
 import httpx
+
 from src.models import JobOpening, TargetCompany
 
 logger = logging.getLogger(__name__)
@@ -64,22 +66,20 @@ class BaseCollector(ABC):
                             await asyncio.sleep(delay)
                             continue
                         else:
-                            logger.error(f"Rate limit exceeded (429) for {target.name} after {self.max_retries} retries.")
+                            logger.error(
+                                f"Rate limit exceeded (429) for {target.name} after {self.max_retries} retries."
+                            )
                             return []
                     elif response.status_code == 404:
                         logger.warning(f"Target company board not found (404): {target.name} ({url})")
                         return []
                     else:
-                        logger.warning(
-                            f"Received HTTP {response.status_code} for {target.name} on {target.source}"
-                        )
+                        logger.warning(f"Received HTTP {response.status_code} for {target.name} on {target.source}")
                         return []
                 except (httpx.RequestError, httpx.HTTPStatusError) as exc:
                     if attempt < self.max_retries:
                         delay = self.backoff_factor * (2**attempt)
-                        logger.warning(
-                            f"Network error querying {url}: {exc}. Retrying in {delay:.2f}s..."
-                        )
+                        logger.warning(f"Network error querying {url}: {exc}. Retrying in {delay:.2f}s...")
                         await asyncio.sleep(delay)
                     else:
                         logger.error(f"Failed to fetch {url} after {self.max_retries} attempts: {exc}")
@@ -89,9 +89,7 @@ class BaseCollector(ABC):
             if should_close:
                 await client.aclose()
 
-    async def fetch_jobs(
-        self, target: TargetCompany, client: Optional[httpx.AsyncClient] = None
-    ) -> List[JobOpening]:
+    async def fetch_jobs(self, target: TargetCompany, client: Optional[httpx.AsyncClient] = None) -> List[JobOpening]:
         """Fetches and parses job openings from the target ATS with retry logic and error isolation."""
         url = self.build_url(target)
         params = self.build_params(target)

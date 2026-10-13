@@ -1,8 +1,8 @@
-import pytest
-import respx
 import httpx
+import pytest
+
 from src.collectors.lever import LeverCollector
-from src.models import TargetCompany, JobOpening
+from src.models import JobOpening, TargetCompany
 
 
 @pytest.mark.asyncio
@@ -68,9 +68,7 @@ async def test_lever_collector_handles_404_gracefully(respx_mock):
     target = TargetCompany(name="nonexistent", source="lever")
     collector = LeverCollector()
 
-    respx_mock.get("https://api.lever.co/v0/postings/nonexistent?mode=json").respond(
-        status_code=404
-    )
+    respx_mock.get("https://api.lever.co/v0/postings/nonexistent?mode=json").respond(status_code=404)
 
     async with httpx.AsyncClient() as client:
         jobs = await collector.fetch_jobs(target, client=client)

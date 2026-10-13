@@ -17,6 +17,7 @@ logger = logging.getLogger("job_hunter_ats.storage")
 
 class SearchConfigData(BaseModel):
     """Dynamic search configuration loaded from Supabase `public.search_configs`."""
+
     keywords: List[str] = Field(default_factory=list, description="Target job title keywords")
     excluded_keywords: List[str] = Field(default_factory=list, description="Excluded job title keywords")
     locations: List[str] = Field(default_factory=list, description="Target location keywords")
@@ -131,7 +132,7 @@ async def load_search_configs(
                 if val_str:
                     companies.append(val_str)
                     src = meta.get("source", "greenhouse")
-                    if src not in {"greenhouse", "lever", "Gupy", "gupy", "gupy_global"}:
+                    if src not in {"greenhouse", "lever", "Gupy", "gupy", "gupy_global", "solides"}:
                         src = "greenhouse"
                     target_companies.append(
                         TargetCompany(
@@ -146,6 +147,8 @@ async def load_search_configs(
                     ats_filter.update(meta)
                     if val_str and "value" in meta and val_str not in meta:
                         ats_filter[val_str] = meta["value"]
+                    elif val_str and val_str not in ats_filter:
+                        ats_filter[val_str] = True
                 elif val_str:
                     ats_filter[val_str] = True
 
@@ -166,7 +169,6 @@ async def load_search_configs(
     except Exception as exc:
         logger.warning(f"Error querying search configs from Supabase: {exc}", exc_info=True)
         return None
-
 
 
 class SQLiteStorage:
@@ -269,9 +271,7 @@ class SupabaseStorage:
         self._client: Optional[AsyncClient] = None
 
         if not self.url or not self.key:
-            raise ValueError(
-                "SUPABASE_URL and SUPABASE_KEY must be provided or configured in the environment."
-            )
+            raise ValueError("SUPABASE_URL and SUPABASE_KEY must be provided or configured in the environment.")
 
     async def get_client(self) -> AsyncClient:
         """Lazily initializes and returns the Supabase AsyncClient."""
@@ -305,10 +305,7 @@ class SupabaseStorage:
             ats = job.job_id.split(":")[0]
         ats_str = str(ats).lower() if ats else ""
 
-        external_id = (
-            getattr(job, "external_id", None)
-            or getattr(job, "source_job_id", None)
-        )
+        external_id = getattr(job, "external_id", None) or getattr(job, "source_job_id", None)
         if not external_id and hasattr(job, "job_id"):
             parts = job.job_id.split(":")
             external_id = parts[-1]
@@ -431,11 +428,7 @@ class SupabaseStorage:
             logger.error(f"Error marking job_id '{job_id_str}' as seen in Supabase: {exc}", exc_info=True)
             return False
 
-    async def load_search_configs(
-        self, user_id: Optional[str] = None
-    ) -> Optional[SearchConfigData]:
+    async def load_search_configs(self, user_id: Optional[str] = None) -> Optional[SearchConfigData]:
         """Loads search configurations for a specific user_id."""
         client = await self.get_client()
         return await load_search_configs(client, user_id=user_id)
-
-

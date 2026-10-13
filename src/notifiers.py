@@ -1,7 +1,9 @@
 import logging
 import os
 from typing import Optional
+
 import httpx
+
 from src.models import JobOpening
 
 logger = logging.getLogger(__name__)
@@ -63,9 +65,7 @@ class TelegramNotifier:
             f"🔗 *Candidatura:* [Acessar Vaga]({job.url})\n"
         )
 
-    async def notify(
-        self, job: JobOpening, client: Optional[httpx.AsyncClient] = None
-    ) -> bool:
+    async def notify(self, job: JobOpening, client: Optional[httpx.AsyncClient] = None) -> bool:
         if not self.is_configured:
             logger.warning("TelegramNotifier is not configured (missing token or chat_id).")
             return False
@@ -89,9 +89,7 @@ class TelegramNotifier:
                 logger.info(f"Telegram notification sent for job {job.job_id}")
                 return True
             else:
-                logger.error(
-                    f"Failed to send Telegram notification: HTTP {response.status_code} - {response.text}"
-                )
+                logger.error(f"Failed to send Telegram notification: HTTP {response.status_code} - {response.text}")
                 return False
         except httpx.RequestError as exc:
             logger.error(f"Network error sending Telegram notification: {exc}")
@@ -112,9 +110,7 @@ class NotificationDispatcher:
         self.telegram_notifier = telegram_notifier
         self.console_notifier = console_notifier or ConsoleNotifier()
 
-    async def notify(
-        self, job: JobOpening, client: Optional[httpx.AsyncClient] = None
-    ) -> bool:
+    async def notify(self, job: JobOpening, client: Optional[httpx.AsyncClient] = None) -> bool:
         notified = False
         if self.telegram_notifier and self.telegram_notifier.is_configured:
             success = await self.telegram_notifier.notify(job, client=client)

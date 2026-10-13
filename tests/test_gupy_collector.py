@@ -1,7 +1,8 @@
-import pytest
 import httpx
+import pytest
+
 from src.collectors.gupy import GupyCollector
-from src.models import TargetCompany, JobOpening
+from src.models import JobOpening, TargetCompany
 
 
 @pytest.mark.asyncio
@@ -131,10 +132,7 @@ async def test_gupy_collector_headers_and_params(respx_mock, gupy_jobs_raw):
     target = TargetCompany(name="Stefanini Group", source="Gupy")
     collector = GupyCollector()
 
-    expected_url = "https://portal.gupy.io/api/job-search/jobs?limit=100&offset=0&careerPageName=Stefanini+Group"
-    route = respx_mock.get("https://portal.gupy.io/api/job-search/jobs").respond(
-        status_code=200, json=gupy_jobs_raw
-    )
+    route = respx_mock.get("https://portal.gupy.io/api/job-search/jobs").respond(status_code=200, json=gupy_jobs_raw)
 
     async with httpx.AsyncClient() as client:
         jobs = await collector.fetch_jobs(target, client=client)
@@ -159,9 +157,7 @@ async def test_gupy_collector_fetch_success(respx_mock, gupy_jobs_raw):
     target = TargetCompany(name="ambev", source="Gupy")
     collector = GupyCollector()
 
-    route = respx_mock.get("https://portal.gupy.io/api/job-search/jobs").respond(
-        status_code=200, json=gupy_jobs_raw
-    )
+    route = respx_mock.get("https://portal.gupy.io/api/job-search/jobs").respond(status_code=200, json=gupy_jobs_raw)
 
     async with httpx.AsyncClient() as client:
         jobs = await collector.fetch_jobs(target, client=client)
@@ -293,9 +289,7 @@ async def test_gupy_collector_fetch_global_discovery(respx_mock):
         ]
     }
 
-    route = respx_mock.get("https://portal.gupy.io/api/job-search/jobs").respond(
-        status_code=200, json=mock_payload
-    )
+    route = respx_mock.get("https://portal.gupy.io/api/job-search/jobs").respond(status_code=200, json=mock_payload)
 
     async with httpx.AsyncClient() as client:
         jobs = await collector.fetch_jobs(target, client=client)
@@ -319,4 +313,3 @@ async def test_gupy_collector_fetch_global_discovery(respx_mock):
     assert jobs[0].company == "Tech Hub"
     assert jobs[0].title == "Desenvolvedor Python"
     assert jobs[0].location == "Remoto"
-

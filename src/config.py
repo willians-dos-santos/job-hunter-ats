@@ -1,9 +1,10 @@
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
 import yaml
-from pydantic import BaseModel, Field
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field
 
 load_dotenv()
 
@@ -58,9 +59,7 @@ def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
 
     # Resolve search_config_user_id from env vars if null/empty in YAML
     user_id = (
-        data.get("search_config_user_id")
-        or data.get("SEARCH_CONFIG_USER_ID")
-        or os.getenv("SEARCH_CONFIG_USER_ID")
+        data.get("search_config_user_id") or data.get("SEARCH_CONFIG_USER_ID") or os.getenv("SEARCH_CONFIG_USER_ID")
     )
     data["search_config_user_id"] = user_id
     data["SEARCH_CONFIG_USER_ID"] = user_id

@@ -1,6 +1,6 @@
-import os
 import pytest
 import yaml
+
 from src.config import load_config
 
 
@@ -52,6 +52,7 @@ def test_load_config_file_not_found():
 
 def test_filters_config_schema():
     from src.config import FiltersConfig
+
     default_cfg = FiltersConfig()
     assert default_cfg.max_days_old == 30
     assert default_cfg.exclude_inactive is True
@@ -85,11 +86,10 @@ def test_load_config_search_config_user_id_from_yaml(tmp_path, monkeypatch):
 
 def test_app_config_search_config_user_id_schema():
     from src.config import AppConfig
+
     default_cfg = AppConfig()
     assert default_cfg.search_config_user_id is None
     assert default_cfg.SEARCH_CONFIG_USER_ID is None
 
     custom_cfg = AppConfig(search_config_user_id="uuid-custom")
     assert custom_cfg.search_config_user_id == "uuid-custom"
-
-

@@ -1,8 +1,8 @@
-import pytest
-import respx
 import httpx
+import pytest
+
 from src.collectors.greenhouse import GreenhouseCollector
-from src.models import TargetCompany, JobOpening
+from src.models import JobOpening, TargetCompany
 
 
 @pytest.mark.asyncio
@@ -70,9 +70,7 @@ async def test_greenhouse_collector_handles_404_gracefully(respx_mock):
     target = TargetCompany(name="nonexistent", source="greenhouse")
     collector = GreenhouseCollector()
 
-    respx_mock.get("https://boards-api.greenhouse.io/v1/boards/nonexistent/jobs").respond(
-        status_code=404
-    )
+    respx_mock.get("https://boards-api.greenhouse.io/v1/boards/nonexistent/jobs").respond(status_code=404)
 
     async with httpx.AsyncClient() as client:
         jobs = await collector.fetch_jobs(target, client=client)
@@ -86,9 +84,7 @@ async def test_greenhouse_collector_handles_500_server_error(respx_mock):
     target = TargetCompany(name="acme", source="greenhouse")
     collector = GreenhouseCollector(max_retries=1)
 
-    respx_mock.get("https://boards-api.greenhouse.io/v1/boards/acme/jobs").respond(
-        status_code=500
-    )
+    respx_mock.get("https://boards-api.greenhouse.io/v1/boards/acme/jobs").respond(status_code=500)
 
     async with httpx.AsyncClient() as client:
         jobs = await collector.fetch_jobs(target, client=client)

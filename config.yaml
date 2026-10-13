@@ -27,6 +27,9 @@ database_path: "data/jobs.db"
 #   - name: "Ambev Tech"
 #     slug: "ambevtech"
 #     source: "Gupy"
+#   - name: "Vagas Python Solides"
+#     query: "Python"
+#     source: "solides"
 
 targets:
   - name: "Vagas Python Brasil"
