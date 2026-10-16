@@ -49,6 +49,27 @@ Configures dynamic search keywords, excluded terms, locations, and targets.
 
 ---
 
+### 1.3 Table: `public.user_device_tokens`
+
+Stores active Firebase Cloud Messaging (FCM) device registration tokens for push notification delivery per user.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | `UUID` | `PRIMARY KEY DEFAULT gen_random_uuid()` | Unique record identifier |
+| `user_id` | `UUID` | `NOT NULL` | Scoped user identifier (references `auth.users(id)` ON DELETE CASCADE) |
+| `fcm_token` | `TEXT` | `NOT NULL` | Device FCM push registration token |
+| `created_at` | `TIMESTAMPTZ` | `DEFAULT NOW()` | Registration timestamp |
+| `updated_at` | `TIMESTAMPTZ` | `DEFAULT NOW()` | Last synchronization timestamp |
+
+#### Conflict Resolution & Cleanup
+```sql
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_device_tokens_user_token ON public.user_device_tokens (user_id, fcm_token);
+```
+- Upsert target: `public.user_device_tokens` with conflict target `(user_id, fcm_token)`.
+- Stale token cleanup: If FCM reports a token as unregistered, expired, or invalid during multicast dispatch, the invalid token is deleted from `public.user_device_tokens`.
+
+---
+
 ## 2. SQLite Local Fallback Schema
 
 ### 2.1 Table: `seen_jobs`

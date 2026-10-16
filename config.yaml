@@ -85,3 +85,9 @@ telegram:
   # Alternatively provide via TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID env vars
   bot_token: null
   chat_id: null
+
+fcm:
+  # Set to true to enable FCM push notifications (also requires FIREBASE_CREDENTIALS_PATH)
+  enabled: true
+  # Path to Firebase Admin service account JSON credentials file
+  credentials_path: null

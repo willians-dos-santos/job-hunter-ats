@@ -1,39 +1,16 @@
 import logging
 import os
-from typing import Optional
+from typing import Any, Optional
 
 import httpx
 
 from src.models import JobOpening
+from src.notifiers.base import BaseNotifier
 
 logger = logging.getLogger(__name__)
 
 
-class ConsoleNotifier:
-    """Notifier that prints structured job details to stdout/console."""
-
-    def notify(self, job: JobOpening) -> bool:
-        border = "=" * 60
-        if job.published_at:
-            published_at = job.published_at.strftime("%d/%m/%Y %H:%M")
-        else:
-            published_at = "Data não informada"
-        message = (
-            f"\n{border}\n"
-            f" [NOVA VAGA ENCONTRADA]\n"
-            f" Empresa:     {job.company}\n"
-            f" Cargo:       {job.title}\n"
-            f" Local:       {job.location}\n"
-            f" Publicada em: {published_at}\n"
-            f" Plataforma:  {job.source}\n"
-            f" Link Direto: {job.url}\n"
-            f"{border}\n"
-        )
-        print(message)
-        return True
-
-
-class TelegramNotifier:
+class TelegramNotifier(BaseNotifier):
     """Notifier that sends job alerts to a Telegram chat via Bot API."""
 
     def __init__(
@@ -65,7 +42,12 @@ class TelegramNotifier:
             f"🔗 *Candidatura:* [Acessar Vaga]({job.url})\n"
         )
 
-    async def notify(self, job: JobOpening, client: Optional[httpx.AsyncClient] = None) -> bool:
+    async def notify(
+        self,
+        job: JobOpening,
+        client: Optional[httpx.AsyncClient] = None,
+        **kwargs: Any,
+    ) -> bool:
         if not self.is_configured:
             logger.warning("TelegramNotifier is not configured (missing token or chat_id).")
             return False
@@ -97,29 +79,3 @@ class TelegramNotifier:
         finally:
             if should_close:
                 await client.aclose()
-
-
-class NotificationDispatcher:
-    """Dispatches notifications across configured channels with graceful fallback."""
-
-    def __init__(
-        self,
-        telegram_notifier: Optional[TelegramNotifier] = None,
-        console_notifier: Optional[ConsoleNotifier] = None,
-    ) -> None:
-        self.telegram_notifier = telegram_notifier
-        self.console_notifier = console_notifier or ConsoleNotifier()
-
-    async def notify(self, job: JobOpening, client: Optional[httpx.AsyncClient] = None) -> bool:
-        notified = False
-        if self.telegram_notifier and self.telegram_notifier.is_configured:
-            success = await self.telegram_notifier.notify(job, client=client)
-            if success:
-                notified = True
-
-        # Always output to console if Telegram is unavailable or not configured
-        if not notified and self.console_notifier:
-            self.console_notifier.notify(job)
-            notified = True
-
-        return notified

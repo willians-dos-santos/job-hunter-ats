@@ -17,6 +17,11 @@ class TelegramConfig(BaseModel):
     chat_id: Optional[str] = None
 
 
+class FcmConfig(BaseModel):
+    enabled: bool = False
+    credentials_path: Optional[str] = None
+
+
 class FiltersConfig(BaseModel):
     title_keywords: List[str] = Field(default_factory=list)
     title_exclude: List[str] = Field(default_factory=list)
@@ -32,12 +37,13 @@ class AppConfig(BaseModel):
     targets: List[Dict[str, Any]] = Field(default_factory=list)
     filters: FiltersConfig = Field(default_factory=FiltersConfig)
     telegram: TelegramConfig = Field(default_factory=TelegramConfig)
+    fcm: FcmConfig = Field(default_factory=FcmConfig)
     search_config_user_id: Optional[str] = None
     SEARCH_CONFIG_USER_ID: Optional[str] = None
 
 
 def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
-    """Loads configuration from a YAML file, ensuring Telegram credentials and search config user ID fallback to env vars."""
+    """Loads configuration from a YAML file, ensuring Telegram credentials, FCM credentials, and search config user ID fallback to env vars."""
     path = Path(config_path)
     if not path.is_file():
         raise FileNotFoundError(f"Configuration file not found: {config_path}")
@@ -56,6 +62,15 @@ def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
 
     tg_cfg["bot_token"] = bot_token
     tg_cfg["chat_id"] = chat_id
+
+    # Resolve FCM configuration from env vars if null/empty in YAML
+    fcm_cfg = data.get("fcm")
+    if fcm_cfg is None or not isinstance(fcm_cfg, dict):
+        fcm_cfg = {}
+        data["fcm"] = fcm_cfg
+
+    credentials_path = fcm_cfg.get("credentials_path") or os.getenv("FIREBASE_CREDENTIALS_PATH")
+    fcm_cfg["credentials_path"] = credentials_path
 
     # Resolve search_config_user_id from env vars if null/empty in YAML
     user_id = (

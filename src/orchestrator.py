@@ -16,7 +16,7 @@ from src.collectors.solides import SolidesCollector
 from src.config import load_config
 from src.filters import JobFilter
 from src.models import JobOpening, TargetCompany
-from src.notifiers import ConsoleNotifier, NotificationDispatcher, TelegramNotifier
+from src.notifiers import ConsoleNotifier, FcmNotifier, NotificationDispatcher, TelegramNotifier
 from src.storage import SearchConfigData, SQLiteStorage, SupabaseStorage, load_search_configs
 
 logger = logging.getLogger("job_hunter_ats.orchestrator")
@@ -92,18 +92,31 @@ class CrawlerOrchestrator:
             if tg_enabled and (tg_token and tg_chat_id)
             else None
         )
-        dispatcher = NotificationDispatcher(
-            telegram_notifier=telegram_notifier,
-            console_notifier=ConsoleNotifier(),
-        )
-
-        concurrency_limit = int(config.get("concurrency_limit", 5))
 
         user_id = (
             config.get("search_config_user_id")
             or config.get("SEARCH_CONFIG_USER_ID")
             or os.getenv("SEARCH_CONFIG_USER_ID")
         )
+
+        # FCM configuration (respecting env vars and config)
+        fcm_cfg = config.get("fcm", {})
+        fcm_enabled = fcm_cfg.get("enabled", False)
+        fcm_cred_path = fcm_cfg.get("credentials_path") or os.getenv("FIREBASE_CREDENTIALS_PATH")
+
+        fcm_notifier = (
+            FcmNotifier(user_id=user_id, credentials_path=fcm_cred_path) if fcm_enabled and fcm_cred_path else None
+        )
+        if fcm_notifier and not fcm_notifier.is_configured:
+            fcm_notifier = None
+
+        dispatcher = NotificationDispatcher(
+            telegram_notifier=telegram_notifier,
+            console_notifier=ConsoleNotifier(),
+            fcm_notifier=fcm_notifier,
+        )
+
+        concurrency_limit = int(config.get("concurrency_limit", 5))
 
         return cls(
             targets=targets,
@@ -303,7 +316,13 @@ class CrawlerOrchestrator:
 
     async def run(self, user_id: Optional[str] = None) -> List[JobOpening]:
         """Runs a complete crawl, filter, persistence and notification cycle."""
-        await self._sync_search_configs(user_id=user_id)
+        effective_user_id = user_id if user_id is not None else (self.user_id or os.getenv("SEARCH_CONFIG_USER_ID"))
+        await self._sync_search_configs(user_id=effective_user_id)
+
+        if getattr(self.dispatcher, "fcm_notifier", None) and self.dispatcher.fcm_notifier.supabase_client is None:
+            sb_client = await self._get_supabase_client()
+            if sb_client:
+                self.dispatcher.fcm_notifier.supabase_client = sb_client
 
         active_platforms = sorted(
             list({("gupy" if t.source.lower().startswith("gupy") else t.source.lower()) for t in self.targets})
@@ -367,7 +386,7 @@ class CrawlerOrchestrator:
 
                 # Only notify if the job was successfully persisted as new (not rejected as duplicate)
                 if saved:
-                    await self.dispatcher.notify(job, client=client)
+                    await self.dispatcher.notify(job, client=client, user_id=effective_user_id)
                     notified_jobs.append(job)
                 else:
                     logger.info(
