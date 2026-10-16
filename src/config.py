@@ -20,6 +20,7 @@ class TelegramConfig(BaseModel):
 class FcmConfig(BaseModel):
     enabled: bool = False
     credentials_path: Optional[str] = None
+    service_account_base64: Optional[str] = None
 
 
 class FiltersConfig(BaseModel):
@@ -71,6 +72,8 @@ def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
 
     credentials_path = fcm_cfg.get("credentials_path") or os.getenv("FIREBASE_CREDENTIALS_PATH")
     fcm_cfg["credentials_path"] = credentials_path
+    service_account_base64 = fcm_cfg.get("service_account_base64") or os.getenv("FIREBASE_SERVICE_ACCOUNT_BASE64")
+    fcm_cfg["service_account_base64"] = service_account_base64
 
     # Resolve search_config_user_id from env vars if null/empty in YAML
     user_id = (

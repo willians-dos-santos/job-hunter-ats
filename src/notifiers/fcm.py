@@ -1,5 +1,7 @@
 import asyncio
+import base64
 import inspect
+import json
 import logging
 import os
 from pathlib import Path
@@ -14,6 +16,8 @@ from src.models import JobOpening
 from src.notifiers.base import BaseNotifier
 
 logger = logging.getLogger(__name__)
+
+_UNSET = object()
 
 
 def is_unregistered_or_invalid_token_error(exc: Optional[Exception]) -> bool:
@@ -56,35 +60,88 @@ class FcmNotifier(BaseNotifier):
         supabase_client: Optional[Any] = None,
         user_id: Optional[str] = None,
         credentials_path: Optional[str] = None,
-        firebase_app: Optional[Any] = None,
+        firebase_app: Any = _UNSET,
+        service_account_base64: Optional[str] = None,
     ) -> None:
         self.supabase_client = supabase_client
         self.user_id = user_id or os.getenv("SEARCH_CONFIG_USER_ID")
         self.credentials_path = credentials_path or os.getenv("FIREBASE_CREDENTIALS_PATH")
-        self.firebase_app = firebase_app or self._init_firebase_app(self.credentials_path)
+        self.service_account_base64 = service_account_base64 or os.getenv("FIREBASE_SERVICE_ACCOUNT_BASE64")
+        if firebase_app is not _UNSET:
+            self.firebase_app = firebase_app
+        else:
+            self.firebase_app = self._init_firebase_app(
+                credentials_path=self.credentials_path,
+                service_account_base64=self.service_account_base64,
+            )
 
     @classmethod
-    def _init_firebase_app(cls, credentials_path: Optional[str]) -> Optional[Any]:
-        """Initializes or retrieves the default Firebase Admin App instance."""
+    def _init_firebase_app(
+        cls,
+        credentials_path: Optional[str] = None,
+        service_account_base64: Optional[str] = None,
+    ) -> Any:
+        """Initializes or retrieves the default Firebase Admin App instance.
+
+        Checks FIREBASE_SERVICE_ACCOUNT_BASE64 first. If not provided, falls back
+        defensively to a physical credentials file (FIREBASE_CREDENTIALS_PATH or
+        './firebase-service-account.json'). Raises an exception if neither is configured.
+        """
         try:
             return firebase_admin.get_app()
         except ValueError:
             pass
 
-        if credentials_path:
-            path = Path(credentials_path)
-            if path.is_file():
-                try:
-                    cred = credentials.Certificate(str(path))
-                    return firebase_admin.initialize_app(cred)
-                except Exception as exc:
-                    logger.error(f"Failed to initialize Firebase App with '{credentials_path}': {exc}")
-                    return None
-            else:
-                logger.warning(f"FIREBASE_CREDENTIALS_PATH file does not exist: {credentials_path}")
-        else:
-            logger.warning("FIREBASE_CREDENTIALS_PATH is not configured.")
-        return None
+        # 1. Prioritize Base64-encoded credentials in memory
+        b64_val = service_account_base64 or os.getenv("FIREBASE_SERVICE_ACCOUNT_BASE64")
+        if b64_val and b64_val.strip():
+            try:
+                decoded_bytes = base64.b64decode(b64_val.strip())
+                cred_dict = json.loads(decoded_bytes.decode("utf-8"))
+            except Exception as exc:
+                logger.error(f"Failed to decode or parse FIREBASE_SERVICE_ACCOUNT_BASE64: {exc}")
+                raise ValueError(f"Invalid FIREBASE_SERVICE_ACCOUNT_BASE64 payload: {exc}") from exc
+
+            try:
+                cred = credentials.Certificate(cred_dict)
+                return firebase_admin.initialize_app(cred)
+            except Exception as exc:
+                logger.error(f"Failed to initialize Firebase App with base64 credentials: {exc}")
+                raise
+
+        # 2. Defensive fallback to physical file
+        path_str = credentials_path or os.getenv("FIREBASE_CREDENTIALS_PATH")
+        if path_str:
+            target_path = Path(path_str)
+            if not target_path.is_file():
+                msg = f"Firebase credentials file not found: {path_str}"
+                logger.error(msg)
+                raise FileNotFoundError(msg)
+            try:
+                cred = credentials.Certificate(str(target_path))
+                return firebase_admin.initialize_app(cred)
+            except Exception as exc:
+                logger.error(f"Failed to initialize Firebase App with '{path_str}': {exc}")
+                raise
+
+        # Check default fallback location './firebase-service-account.json'
+        default_file = Path("./firebase-service-account.json")
+        if default_file.is_file():
+            try:
+                cred = credentials.Certificate(str(default_file))
+                return firebase_admin.initialize_app(cred)
+            except Exception as exc:
+                logger.error(f"Failed to initialize Firebase App with '{default_file}': {exc}")
+                raise
+
+        # 3. Neither option is configured
+        msg = (
+            "No Firebase credentials configured. Please set the 'FIREBASE_SERVICE_ACCOUNT_BASE64' "
+            "environment variable or provide a valid credentials file via 'FIREBASE_CREDENTIALS_PATH' "
+            "(or default './firebase-service-account.json')."
+        )
+        logger.error(msg)
+        raise ValueError(msg)
 
     @property
     def is_configured(self) -> bool:

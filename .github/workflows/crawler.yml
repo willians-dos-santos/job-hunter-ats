@@ -1,35 +1,42 @@
-name: Job Hunter ATS Crawler
+name: ATS Job Hunter Crawler
 
 on:
   schedule:
-    # Executa a cada 2 horas (formato cron UTC)
-    - cron: "0 */2 * * *"
-  workflow_dispatch: # Permite disparo manual via botão na aba Actions
+    # Executa a cada 2 horas (de segunda a sexta) em horário UTC
+    - cron: '0 */2 * * 1-5'
+  workflow_dispatch: # Permite disparar manualmente pela aba "Actions" do GitHub
+
+concurrency:
+  group: crawler-run
+  cancel-in-progress: false
 
 jobs:
-  run-crawler:
+  crawl:
+    name: Run ATS Ingestion Pipeline
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
-      - name: Checkout repository
+      - name: Checkout do código
         uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v3
         with:
           version: "latest"
           enable-cache: true
 
-      - name: Set up Python
-        run: uv python install 3.13
+      - name: Configurar ambiente Python 3.11
+        run: uv python install 3.11
 
-      - name: Install dependencies
+      - name: Sincronizar dependências
         run: uv sync --frozen
 
-      - name: Run Crawler
+      - name: Executar ciclo de coleta
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: uv run python -m src.main --config config.yaml
+          FIREBASE_SERVICE_ACCOUNT_BASE64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_BASE64 }}
+        run: uv run python -m src.main

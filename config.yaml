@@ -87,7 +87,9 @@ telegram:
   chat_id: null
 
 fcm:
-  # Set to true to enable FCM push notifications (also requires FIREBASE_CREDENTIALS_PATH)
+  # Set to true to enable FCM push notifications (also requires FIREBASE_SERVICE_ACCOUNT_BASE64 or FIREBASE_CREDENTIALS_PATH)
   enabled: true
   # Path to Firebase Admin service account JSON credentials file
   credentials_path: null
+  # Base64-encoded Firebase service account JSON string (alternative to credentials_path)
+  service_account_base64: null

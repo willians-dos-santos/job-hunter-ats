@@ -103,10 +103,20 @@ class CrawlerOrchestrator:
         fcm_cfg = config.get("fcm", {})
         fcm_enabled = fcm_cfg.get("enabled", False)
         fcm_cred_path = fcm_cfg.get("credentials_path") or os.getenv("FIREBASE_CREDENTIALS_PATH")
+        fcm_b64 = fcm_cfg.get("service_account_base64") or os.getenv("FIREBASE_SERVICE_ACCOUNT_BASE64")
 
-        fcm_notifier = (
-            FcmNotifier(user_id=user_id, credentials_path=fcm_cred_path) if fcm_enabled and fcm_cred_path else None
-        )
+        fcm_notifier = None
+        if fcm_enabled and (fcm_b64 or fcm_cred_path or os.path.isfile("./firebase-service-account.json")):
+            try:
+                fcm_notifier = FcmNotifier(
+                    user_id=user_id,
+                    credentials_path=fcm_cred_path,
+                    service_account_base64=fcm_b64,
+                )
+            except Exception as exc:
+                logger.warning(f"Failed to initialize FCM notifier: {exc}")
+                fcm_notifier = None
+
         if fcm_notifier and not fcm_notifier.is_configured:
             fcm_notifier = None
 

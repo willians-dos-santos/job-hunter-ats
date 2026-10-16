@@ -1,4 +1,7 @@
+import base64
+import json
 from datetime import datetime, timezone
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -64,7 +67,69 @@ def build_mock_supabase_client(tokens_data=None, query_exception=None, delete_ex
 # ---------------------------------------------------------------------------
 
 
-def test_fcm_init_with_valid_credentials(tmp_path):
+def test_fcm_init_with_base64_credentials_from_env(monkeypatch):
+    raw_payload = {"type": "service_account", "project_id": "b64-project", "client_email": "bot@b64.iam"}
+    b64_str = base64.b64encode(json.dumps(raw_payload).encode("utf-8")).decode("utf-8")
+    monkeypatch.setenv("FIREBASE_SERVICE_ACCOUNT_BASE64", b64_str)
+    monkeypatch.delenv("FIREBASE_CREDENTIALS_PATH", raising=False)
+
+    mock_app = MagicMock()
+    with (
+        patch("firebase_admin.get_app", side_effect=ValueError("No app")),
+        patch("firebase_admin.credentials.Certificate") as mock_cert,
+        patch("firebase_admin.initialize_app", return_value=mock_app) as mock_init,
+    ):
+        notifier = FcmNotifier()
+        assert notifier.is_configured is True
+        assert notifier.firebase_app == mock_app
+        mock_cert.assert_called_once_with(raw_payload)
+        mock_init.assert_called_once()
+
+
+def test_fcm_init_with_base64_credentials_as_arg(monkeypatch):
+    monkeypatch.delenv("FIREBASE_SERVICE_ACCOUNT_BASE64", raising=False)
+    monkeypatch.delenv("FIREBASE_CREDENTIALS_PATH", raising=False)
+
+    raw_payload = {"type": "service_account", "project_id": "arg-project", "client_email": "arg@iam"}
+    b64_str = base64.b64encode(json.dumps(raw_payload).encode("utf-8")).decode("utf-8")
+
+    mock_app = MagicMock()
+    with (
+        patch("firebase_admin.get_app", side_effect=ValueError("No app")),
+        patch("firebase_admin.credentials.Certificate") as mock_cert,
+        patch("firebase_admin.initialize_app", return_value=mock_app) as mock_init,
+    ):
+        notifier = FcmNotifier(service_account_base64=b64_str)
+        assert notifier.is_configured is True
+        assert notifier.firebase_app == mock_app
+        mock_cert.assert_called_once_with(raw_payload)
+        mock_init.assert_called_once()
+
+
+def test_fcm_init_base64_takes_precedence_over_file(tmp_path, monkeypatch):
+    raw_payload = {"type": "service_account", "project_id": "priority-b64"}
+    b64_str = base64.b64encode(json.dumps(raw_payload).encode("utf-8")).decode("utf-8")
+    monkeypatch.setenv("FIREBASE_SERVICE_ACCOUNT_BASE64", b64_str)
+
+    cred_file = tmp_path / "ignored_file.json"
+    cred_file.write_text('{"type": "service_account", "project_id": "ignored-file"}')
+
+    mock_app = MagicMock()
+    with (
+        patch("firebase_admin.get_app", side_effect=ValueError("No app")),
+        patch("firebase_admin.credentials.Certificate") as mock_cert,
+        patch("firebase_admin.initialize_app", return_value=mock_app) as mock_init,
+    ):
+        notifier = FcmNotifier(credentials_path=str(cred_file))
+        assert notifier.is_configured is True
+        assert notifier.firebase_app == mock_app
+        # Must use base64 dictionary payload, NOT the file path
+        mock_cert.assert_called_once_with(raw_payload)
+        mock_init.assert_called_once()
+
+
+def test_fcm_init_with_valid_credentials_file_fallback(tmp_path, monkeypatch):
+    monkeypatch.delenv("FIREBASE_SERVICE_ACCOUNT_BASE64", raising=False)
     cred_file = tmp_path / "service_account.json"
     cred_file.write_text('{"type": "service_account", "project_id": "test-project"}')
 
@@ -81,6 +146,69 @@ def test_fcm_init_with_valid_credentials(tmp_path):
         mock_init.assert_called_once()
 
 
+def test_fcm_init_with_env_credentials_file_fallback(tmp_path, monkeypatch):
+    monkeypatch.delenv("FIREBASE_SERVICE_ACCOUNT_BASE64", raising=False)
+    cred_file = tmp_path / "env_service_account.json"
+    cred_file.write_text('{"type": "service_account", "project_id": "env-file-project"}')
+    monkeypatch.setenv("FIREBASE_CREDENTIALS_PATH", str(cred_file))
+
+    mock_app = MagicMock()
+    with (
+        patch("firebase_admin.get_app", side_effect=ValueError("No app")),
+        patch("firebase_admin.credentials.Certificate") as mock_cert,
+        patch("firebase_admin.initialize_app", return_value=mock_app) as mock_init,
+    ):
+        notifier = FcmNotifier()
+        assert notifier.is_configured is True
+        assert notifier.firebase_app == mock_app
+        mock_cert.assert_called_once_with(str(cred_file))
+        mock_init.assert_called_once()
+
+
+def test_fcm_init_with_default_file_fallback(monkeypatch):
+    monkeypatch.delenv("FIREBASE_SERVICE_ACCOUNT_BASE64", raising=False)
+    monkeypatch.delenv("FIREBASE_CREDENTIALS_PATH", raising=False)
+
+    mock_app = MagicMock()
+    with (
+        patch("firebase_admin.get_app", side_effect=ValueError("No app")),
+        patch("pathlib.Path.is_file", return_value=True),
+        patch("firebase_admin.credentials.Certificate") as mock_cert,
+        patch("firebase_admin.initialize_app", return_value=mock_app) as mock_init,
+    ):
+        notifier = FcmNotifier()
+        assert notifier.is_configured is True
+        assert notifier.firebase_app == mock_app
+        mock_cert.assert_called_once_with(str(Path("./firebase-service-account.json")))
+        mock_init.assert_called_once()
+
+
+def test_fcm_init_no_credentials_configured_raises_error(monkeypatch):
+    monkeypatch.delenv("FIREBASE_SERVICE_ACCOUNT_BASE64", raising=False)
+    monkeypatch.delenv("FIREBASE_CREDENTIALS_PATH", raising=False)
+
+    with (
+        patch("firebase_admin.get_app", side_effect=ValueError("No app")),
+        patch("pathlib.Path.is_file", return_value=False),
+    ):
+        with pytest.raises(ValueError, match="No Firebase credentials configured"):
+            FcmNotifier()
+
+
+def test_fcm_init_with_missing_credentials_file(monkeypatch):
+    monkeypatch.delenv("FIREBASE_SERVICE_ACCOUNT_BASE64", raising=False)
+    with patch("firebase_admin.get_app", side_effect=ValueError("No app")):
+        with pytest.raises(FileNotFoundError, match="Firebase credentials file not found"):
+            FcmNotifier(credentials_path="/non/existent/path.json")
+
+
+def test_fcm_init_invalid_base64_payload_raises_error(monkeypatch):
+    monkeypatch.setenv("FIREBASE_SERVICE_ACCOUNT_BASE64", "invalid-base64-payload!!!")
+    with patch("firebase_admin.get_app", side_effect=ValueError("No app")):
+        with pytest.raises(ValueError, match="Invalid FIREBASE_SERVICE_ACCOUNT_BASE64 payload"):
+            FcmNotifier()
+
+
 def test_fcm_init_with_existing_default_app():
     mock_app = MagicMock()
     with patch("firebase_admin.get_app", return_value=mock_app):
@@ -89,18 +217,12 @@ def test_fcm_init_with_existing_default_app():
         assert notifier.firebase_app == mock_app
 
 
-def test_fcm_init_with_missing_credentials_file():
-    with patch("firebase_admin.get_app", side_effect=ValueError("No app")):
-        notifier = FcmNotifier(credentials_path="/non/existent/path.json")
-        assert notifier.is_configured is False
-        assert notifier.firebase_app is None
-
-
 def test_fcm_init_with_injected_firebase_app():
     mock_app = MagicMock()
     notifier = FcmNotifier(firebase_app=mock_app)
     assert notifier.is_configured is True
     assert notifier.firebase_app == mock_app
+
 
 
 # ---------------------------------------------------------------------------
